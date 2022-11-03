@@ -1390,7 +1390,10 @@ namespace SkinFramWorkCore
             public IntPtr lppos;
         }
         #endregion
+
         #region User32
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern int GetWindowLong(IntPtr hWnd, GWLIndex nIndex);

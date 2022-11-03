@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.32929.386
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkinFramWorkCore", "SkinFramWorkCore\SkinFramWorkCore.csproj", "{2D1532E1-CB47-467C-AB40-3C910A0100AE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{28D26C77-C889-4603-9F5C-8234A8C0690E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{2D1532E1-CB47-467C-AB40-3C910A0100AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D1532E1-CB47-467C-AB40-3C910A0100AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D1532E1-CB47-467C-AB40-3C910A0100AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28D26C77-C889-4603-9F5C-8234A8C0690E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28D26C77-C889-4603-9F5C-8234A8C0690E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28D26C77-C889-4603-9F5C-8234A8C0690E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28D26C77-C889-4603-9F5C-8234A8C0690E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

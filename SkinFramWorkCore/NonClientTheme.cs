@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using static SkinFramWorkCore.NativeMethods;
 using static SkinFramWorkCore.Extensions;
 using Microsoft.Win32;
-using System.Reflection;
+using System.Linq;
 
 namespace SkinFramWorkCore
 {
@@ -154,20 +154,17 @@ namespace SkinFramWorkCore
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-            foreach (Control control in this.Controls)
-            {
 
-                if (DoubleBuffered)
+            Controls.Cast<Control>().ToList().ForEach(control =>
+            {
+                var mdiClient = control as MdiClient;
+                if (mdiClient != null && DrawRtl)
                 {
-                    var mdiClient = control as MdiClient;
-                    if (mdiClient == null) continue;
-                    mdiClient.Dock = DockStyle.Fill;
-                    mdiClient.Size = ClientSize;
                     mdiClient.Paint += Rtl_Paint;
                 }
 
-                break;
-            }
+            });
+            
         }
 
 
@@ -331,6 +328,7 @@ namespace SkinFramWorkCore
         #endregion
 
         #region Methods
+        //TODO: DrawImage with Image Layouts
         private void Rtl_Paint(object sender, PaintEventArgs e)
         {
             if (BackgroundImage != null)
