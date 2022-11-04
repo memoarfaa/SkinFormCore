@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using SkinFramWorkCore;
@@ -15,12 +16,19 @@ namespace TestApp
         public MDIParent1()
         {
             InitializeComponent();
-            if (GetDeskTopWallpaper() != null)
-            {
-                BackgroundImageLayout = ImageLayout.Stretch;
-                BackgroundImage = GetDeskTopWallpaper();
-            }
+            //if (GetDeskTopWallpaper() != null)
+            //{
+            //    BackgroundImageLayout = ImageLayout.Stretch;
+            //    BackgroundImage = GetDeskTopWallpaper();
+            //}
         }
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+
+        }
+       
+        
         private Image GetDeskTopWallpaper()
         {
             int SPI_GETDESKWALLPAPER = 0x73;
@@ -33,7 +41,7 @@ namespace TestApp
         }
         private void ShowNewForm(object sender, EventArgs e)
         {
-            Form childForm = new SkinForm() { BackgroundImage = BackgroundImage,BackgroundImageLayout= BackgroundImageLayout,RightToLeft= RightToLeft,RightToLeftLayout= RightToLeftLayout,NcOpacity = NcOpacity,AllowNcTransparency = AllowNcTransparency};
+            Form childForm = new SkinForm() { BackgroundImage = BackgroundImage,BackgroundImageLayout= BackgroundImageLayout,RightToLeft= RightToLeft,RightToLeftLayout= RightToLeftLayout,NcOpacity = NcOpacity,AllowNcTransparency = AllowNcTransparency,BorderRadius = BorderRadius,BorderWidth= BorderWidth};
             childForm.MdiParent = this;
             childForm.Text = "Window " + childFormNumber++;
             childForm.Show();
@@ -51,6 +59,19 @@ namespace TestApp
                 this.RightToLeft = RightToLeft.No;
                 RightToLeftLayout = false;
             }
+            MdiChildren.ToList().ForEach(chield =>
+            {
+                if (!chield.RightToLeftLayout)
+                {
+                    chield.RightToLeft = RightToLeft.Yes;
+                    chield.RightToLeftLayout = true;
+                }
+                else
+                {
+                    chield.RightToLeft = RightToLeft.No;
+                    chield.RightToLeftLayout = false;
+                }
+            });
         }
 
         private void SaveAsToolStripMenuItem_Click(object sender, EventArgs e)

@@ -2,10 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Forms;
 using static SkinFramWorkCore.NativeMethods;
 namespace SkinFramWorkCore
 {
@@ -228,6 +231,178 @@ namespace SkinFramWorkCore
             graphics.DrawImage(Image, bounRect);
         }
 
+        public static GraphicsPath RoundedRect(Rectangle bounds, int radius)
+        {
+            var diameter = radius * 2;
+            var size = new Size(diameter, diameter);
+            var arc = new Rectangle(bounds.Location, size);
+            var path = new GraphicsPath();
+
+            if (radius == 0)
+            {
+                path.AddRectangle(bounds);
+                return path;
+            }
+
+            // top left arc  
+            path.AddArc(arc, 180, 90);
+
+            // top right arc  
+            arc.X = bounds.Right - diameter;
+            path.AddArc(arc, 270, 90);
+
+            // bottom right arc  
+            arc.Y = bounds.Bottom - diameter;
+            path.AddArc(arc, 0, 90);
+
+            // bottom left arc 
+            arc.X = bounds.Left;
+            path.AddArc(arc, 90, 90);
+
+            path.CloseFigure();
+            return path;
+        }
+
+        public static void FillRoundedRectangle(this Graphics graphics, Brush brush, Rectangle bounds, int cornerRadius)
+        {
+            if (graphics == null)
+                throw new ArgumentNullException("graphics");
+            if (brush == null)
+                throw new ArgumentNullException("brush");
+
+            using (var path = RoundedRect(bounds, cornerRadius))
+            {
+                // graphics.Clear(Color.Transparent);
+                // graphics.FillRegion(brush,graphics.Clip);
+                graphics.FillPath(brush, path);
+
+            }
+        }
+
+        internal static Rectangle CalculateBackgroundImageRectangle(Rectangle bounds, Image backgroundImage, ImageLayout imageLayout)
+        {
+            var rectangle = bounds;
+            if (backgroundImage != null)
+            {
+                switch (imageLayout)
+                {
+                    case ImageLayout.None:
+                        rectangle.Size = backgroundImage.Size;
+                        break;
+                    case ImageLayout.Center:
+                        rectangle.Size = backgroundImage.Size;
+                        var size1 = bounds.Size;
+                        if (size1.Width > rectangle.Width)
+                            rectangle.X = (size1.Width - rectangle.Width) / 2;
+                        if (size1.Height > rectangle.Height)
+                        {
+                            rectangle.Y = (size1.Height - rectangle.Height) / 2;
+                        }
+                        break;
+                    case ImageLayout.Stretch:
+                        rectangle.Size = bounds.Size;
+                        break;
+                    case ImageLayout.Zoom:
+                        var size2 = backgroundImage.Size;
+                        var num1 = bounds.Width / (float)size2.Width;
+                        var num2 = bounds.Height / (float)size2.Height;
+                        if (num1 < (double)num2)
+                        {
+                            rectangle.Width = bounds.Width;
+                            rectangle.Height = (int)(size2.Height * (double)num1 + 0.5);
+                            if (bounds.Y >= 0)
+                            {
+                                rectangle.Y = (bounds.Height - rectangle.Height) / 2;
+                            }
+                            break;
+                        }
+                        rectangle.Height = bounds.Height;
+                        rectangle.Width = (int)(size2.Width * (double)num2 + 0.5);
+                        if (bounds.X >= 0)
+                        {
+                            rectangle.X = (bounds.Width - rectangle.Width) / 2;
+                        }
+                        break;
+                }
+            }
+            return rectangle;
+        }
+        public static void DrawBackgroundImage(this Graphics g, Image backgroundImage, Color backColor, ImageLayout backgroundImageLayout, Rectangle bounds, Rectangle clipRect, Point scrollOffset, RightToLeft rightToLeft)
+        {
+            if (g == null)
+                throw new ArgumentNullException("g");
+
+            if (backgroundImageLayout == ImageLayout.Tile)
+            {
+                using (var textureBrush = new TextureBrush(backgroundImage, WrapMode.Tile))
+                {
+                    if (scrollOffset != Point.Empty)
+                    {
+                        var transform = textureBrush.Transform;
+                        transform.Translate(scrollOffset.X, scrollOffset.Y);
+                        textureBrush.Transform = transform;
+                    }
+                    g.FillRectangle(textureBrush, clipRect);
+                }
+            }
+            else
+            {
+                var backgroundImageRectangle = CalculateBackgroundImageRectangle(bounds, backgroundImage, backgroundImageLayout);
+                if (rightToLeft == RightToLeft.Yes && backgroundImageLayout == ImageLayout.None)
+                    backgroundImageRectangle.X += clipRect.Width - backgroundImageRectangle.Width;
+                if (rightToLeft == RightToLeft.Yes)
+                {
+
+                    g.Transform = new System.Drawing.Drawing2D.Matrix(-1, 0, 0, 1, bounds.Width, 0);
+                    Region reg = g.Clip;
+                    Rectangle r = bounds;
+                    reg.Exclude(r);
+                    //using (var solidBrush = new SolidBrush(backColor))
+
+
+
+                    //g.FillRectangle(solidBrush, clipRect);
+                    reg.Union(r); ;
+                    g.Clip = reg;
+
+                }
+                if (!clipRect.Contains(backgroundImageRectangle))
+                {
+                    switch (backgroundImageLayout)
+                    {
+                        case ImageLayout.Stretch:
+                        case ImageLayout.Zoom:
+                            backgroundImageRectangle.Intersect(clipRect);
+                            g.DrawImage(backgroundImage, clipRect);
+                            break;
+                        case ImageLayout.None:
+                            {
+                                backgroundImageRectangle.Offset(clipRect.Location);
+                                var destRect = backgroundImageRectangle;
+                                destRect.Intersect(clipRect);
+                                var rectangle = new Rectangle(Point.Empty, destRect.Size);
+                                g.DrawImage(backgroundImage, destRect, rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, GraphicsUnit.Pixel);
+                            }
+                            break;
+                        default:
+                            {
+                                var destRect = backgroundImageRectangle;
+                                destRect.Intersect(clipRect);
+                                var rectangle = new Rectangle(new Point(destRect.X - backgroundImageRectangle.X, destRect.Y - backgroundImageRectangle.Y), destRect.Size);
+                                g.DrawImage(backgroundImage, destRect, rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, GraphicsUnit.Pixel);
+                            }
+                            break;
+                    }
+                }
+                else
+                {
+                    var imageAttr = new ImageAttributes();
+                    imageAttr.SetWrapMode(WrapMode.TileFlipXY);
+                    g.DrawImage(backgroundImage, backgroundImageRectangle, 0, 0, backgroundImage.Width, backgroundImage.Height, GraphicsUnit.Pixel, imageAttr);
+                    imageAttr.Dispose();
+                }
+            }
+        }
 
     }
 }

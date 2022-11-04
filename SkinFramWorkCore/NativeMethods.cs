@@ -1392,6 +1392,9 @@ namespace SkinFramWorkCore
         #endregion
 
         #region User32
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
 
@@ -1477,6 +1480,8 @@ namespace SkinFramWorkCore
         public static extern int GetThemeInt(IntPtr hTheme, int iPartId, int iStateId, int iPropId, out int piVal);
         [DllImport("uxtheme.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
         public static extern IntPtr OpenThemeData(IntPtr hWnd, string classList);
+        [DllImport("uxtheme.dll", ExactSpelling = true)]
+        public extern static int IsThemeActive();
         #endregion
 
         #region Dwmapi
@@ -1496,6 +1501,18 @@ namespace SkinFramWorkCore
         #region Gdi32
         [DllImport("gdi32.dll")]
         public static extern int ExcludeClipRect(IntPtr hdc, int left, int top, int right, int bottom);
+        /// <summary>
+        /// The CreateRoundRectRgn function creates a rectangular region with rounded corners.
+        /// </summary>
+        /// <param name="nLeftRect"> x-coordinate of upper-left corner</param>
+        /// <param name="nTopRect">y-coordinate of upper-left corner</param>
+        /// <param name="nRightRect">x-coordinate of lower-right corner</param>
+        /// <param name="nBottomRect"> y-coordinate of lower-right corner</param>
+        /// <param name="nWidthEllipse"> height of ellipse</param>
+        /// <param name="nHeightEllipse">width of ellipse</param>
+        /// <returns></returns>
+        [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
+        public static extern IntPtr CreateRoundRectRgn (int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
         #endregion
 
         #region Methods
