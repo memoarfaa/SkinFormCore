@@ -16,11 +16,11 @@ namespace TestApp
         public MDIParent1()
         {
             InitializeComponent();
-            //if (GetDeskTopWallpaper() != null)
-            //{
-            //    BackgroundImageLayout = ImageLayout.Stretch;
-            //    BackgroundImage = GetDeskTopWallpaper();
-            //}
+            if (GetDeskTopWallpaper() != null)
+            {
+                BackgroundImageLayout = ImageLayout.Stretch;
+                BackgroundImage = GetDeskTopWallpaper();
+            }
         }
         protected override void OnLoad(EventArgs e)
         {
@@ -41,7 +41,7 @@ namespace TestApp
         }
         private void ShowNewForm(object sender, EventArgs e)
         {
-            Form childForm = new SkinForm() { BackgroundImage = BackgroundImage,BackgroundImageLayout= BackgroundImageLayout,RightToLeft= RightToLeft,RightToLeftLayout= RightToLeftLayout,NcOpacity = NcOpacity,AllowNcTransparency = AllowNcTransparency,BorderRadius = BorderRadius,BorderWidth= BorderWidth};
+            Form childForm = new SkinForm() { BackgroundImage = BackgroundImage, BackgroundImageLayout = BackgroundImageLayout, RightToLeft = RightToLeft,RightToLeftLayout= RightToLeftLayout,NcOpacity = NcOpacity,AllowNcTransparency = AllowNcTransparency,BorderRadius = BorderRadius,BorderWidth= BorderWidth};
             childForm.MdiParent = this;
             childForm.Text = "Window " + childFormNumber++;
             childForm.Show();

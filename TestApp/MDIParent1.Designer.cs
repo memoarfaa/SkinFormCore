@@ -101,7 +101,7 @@ namespace TestApp
             this.menuStrip.MdiWindowListItem = this.windowsMenu;
             this.menuStrip.Name = "menuStrip";
             this.menuStrip.Padding = new System.Windows.Forms.Padding(7, 2, 0, 2);
-            this.menuStrip.Size = new System.Drawing.Size(743, 24);
+            this.menuStrip.Size = new System.Drawing.Size(794, 24);
             this.menuStrip.TabIndex = 0;
             this.menuStrip.Text = "MenuStrip";
             // 
@@ -442,7 +442,7 @@ namespace TestApp
             this.helpToolStripButton});
             this.toolStrip.Location = new System.Drawing.Point(0, 24);
             this.toolStrip.Name = "toolStrip";
-            this.toolStrip.Size = new System.Drawing.Size(743, 25);
+            this.toolStrip.Size = new System.Drawing.Size(794, 25);
             this.toolStrip.TabIndex = 1;
             this.toolStrip.Text = "ToolStrip";
             // 
@@ -516,10 +516,10 @@ namespace TestApp
             // 
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel});
-            this.statusStrip.Location = new System.Drawing.Point(0, 480);
+            this.statusStrip.Location = new System.Drawing.Point(0, 463);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Padding = new System.Windows.Forms.Padding(1, 0, 16, 0);
-            this.statusStrip.Size = new System.Drawing.Size(743, 22);
+            this.statusStrip.Size = new System.Drawing.Size(794, 22);
             this.statusStrip.TabIndex = 2;
             this.statusStrip.Text = "StatusStrip";
             // 
@@ -535,8 +535,7 @@ namespace TestApp
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = global::TestApp.Properties.Resources._4475e73c885921925f61fcf123c7c8c1f93e1c0c;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.BorderRadius = 20;
-            this.ClientSize = new System.Drawing.Size(743, 502);
+            this.ClientSize = new System.Drawing.Size(794, 485);
             this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.toolStrip);
             this.Controls.Add(this.menuStrip);

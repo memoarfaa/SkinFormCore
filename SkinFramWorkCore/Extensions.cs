@@ -40,17 +40,20 @@ namespace SkinFramWorkCore
                 }
 
             }
-            catch (ArgumentNullException)
+            catch (ArgumentNullException ex)
             {
                 //ignore
+                DebugConsole.WriteLine(ex);
             }
-            catch (NullReferenceException)
+            catch (NullReferenceException ex)
             {
                 //ignore
+                DebugConsole.WriteLine(ex);
             }
-            catch (OutOfMemoryException)
+            catch (OutOfMemoryException ex)
             {
                 //ignore
+                DebugConsole.WriteLine(ex);
             }
 
             finally
@@ -353,7 +356,7 @@ namespace SkinFramWorkCore
                 if (rightToLeft == RightToLeft.Yes)
                 {
 
-                    g.Transform = new System.Drawing.Drawing2D.Matrix(-1, 0, 0, 1, bounds.Width, 0);
+                    g.Transform = new Matrix(-1, 0, 0, 1, bounds.Width, 0);
                     Region reg = g.Clip;
                     Rectangle r = bounds;
                     reg.Exclude(r);
@@ -402,6 +405,22 @@ namespace SkinFramWorkCore
                     imageAttr.Dispose();
                 }
             }
+        }
+
+        public static bool IsDrawMaximizeBox(this Form form)
+        {
+            return form.MaximizeBox && form.FormBorderStyle != FormBorderStyle.SizableToolWindow &&
+                   form.FormBorderStyle != FormBorderStyle.FixedToolWindow;
+        }
+        /// <summary>
+        /// Gets a value indicating if the minimize box needs to be drawn on the specified form.
+        /// </summary>
+        /// <param name="form">The form to check .</param>
+        /// <returns></returns>
+        public static bool IsDrawMinimizeBox(this Form form)
+        {
+            return form.MinimizeBox && form.FormBorderStyle != FormBorderStyle.SizableToolWindow &&
+                   form.FormBorderStyle != FormBorderStyle.FixedToolWindow;
         }
 
     }

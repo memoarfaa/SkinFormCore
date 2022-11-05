@@ -76,6 +76,17 @@ namespace SkinFramWorkCore
             HTHELP = 21,
         }
         [Flags]
+        public enum SWPFlags
+        {
+            SWP_NOSIZE = 0x0001,
+            SWP_NOMOVE = 0x0002,
+            SWP_NOZORDER = 0x0004,
+            SWP_NOREDRAW = 0x0008,
+            SWP_NOACTIVATE = 0x0010,
+            SWP_FRAMECHANGED = 0x0020,
+        }
+
+        [Flags]
         public enum LoadLibraryFlags : uint
         {
             None = 0,
@@ -102,7 +113,21 @@ namespace SkinFramWorkCore
             NoClip = 2,
             NonClient = 4
         }
-
+        public enum RedrawWindowOptions
+        {
+            RDW_INVALIDATE = 0x0001,
+            RDW_INTERNALPAINT = 0x0002,
+            RDW_ERASE = 0x0004,
+            RDW_VALIDATE = 0x0008,
+            RDW_NOINTERNALPAINT = 0x0010,
+            RDW_NOERASE = 0x0020,
+            RDW_NOCHILDREN = 0x0040,
+            RDW_ALLCHILDREN = 0x0080,
+            RDW_UPDATENOW = 0x0100,
+            RDW_ERASENOW = 0x0200,
+            RDW_FRAME = 0x0400,
+            RDW_NOFRAME = 0x0800
+        }
         public enum BP_BUFFERFORMAT
         {
             CompatibleBitmap,
@@ -1432,6 +1457,12 @@ namespace SkinFramWorkCore
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool PtInRect(ref RECT lprc, POINT pt);
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool RedrawWindow(IntPtr hWnd, IntPtr rectUpdate, IntPtr hrgnUpdate, uint flags);
         #endregion
 
         #region kernel32

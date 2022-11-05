@@ -19,7 +19,7 @@ namespace SkinFramWorkCore
     {
         public NonClientTheme()
         {
-
+           
         }
         #region Fields
         private const int TME_HOVER = 0x1;
@@ -36,7 +36,19 @@ namespace SkinFramWorkCore
         #endregion
 
         #region Properties
-        private bool DrawRtl => RightToLeftLayout && RightToLeft == RightToLeft.Yes;
+        private  bool DrawRtl 
+        {
+            get
+            {
+                return RightToLeft == RightToLeft.Yes && RightToLeftLayout;
+            }
+        }
+        // <summary>
+        /// Gets a value indicating if the maximize box needs to be drawn on the specified form.
+        /// </summary>
+        /// <param name="form">The form to check.</param>
+        /// <returns></returns>
+        
         private static RECT DefultControlBoxBounds
         {
             get
@@ -78,14 +90,18 @@ namespace SkinFramWorkCore
 
         [Category("Theme")]
         [Description("Set nonclient area active caption color.")]
+        [RefreshProperties(RefreshProperties.All)]
         public Color ActiveCaptionColor { get; set; } = activeCaption;
 
         [Category("Theme")]
         [Description("Set nonclient area inactive caption color.")]
+        [RefreshProperties(RefreshProperties.All)]
         public Color InActiveCaptionColor { get; set; } = GetMsstylePlatform() == Platform.Win10 || GetMsstylePlatform() == Platform.Win11 ? Color.White : Color.FromArgb(235, 235, 235);
         [Category("Theme")]
         [Description("Set nonclient area round corners.")]
+        [RefreshProperties(RefreshProperties.All)]
         public int BorderRadius { get; set; }
+        
         private static Color activeCaption
         {
             get
@@ -148,6 +164,9 @@ namespace SkinFramWorkCore
 
                 else
                     return SystemColors.ActiveBorder;
+                
+
+
             }
 
             set
@@ -162,24 +181,24 @@ namespace SkinFramWorkCore
         {
             base.OnLoad(e);
 
-            
+            MdiRtlBackgorund();
+
+        }
+
+        private void MdiRtlBackgorund()
+        {
             var mdiClient = Controls.Cast<Control>().OfType<MdiClient>().FirstOrDefault();
 
             if (mdiClient != null && RightToLeftLayout)
             {
                 mdiClient.Paint += Rtl_Paint;
             }
-
         }
+
         protected override void OnRightToLeftLayoutChanged(EventArgs e)
         {
             base.OnRightToLeftLayoutChanged(e);
-            var mdiClient = Controls.Cast<Control>().OfType<MdiClient>().FirstOrDefault();
-
-            if (mdiClient != null && RightToLeftLayout)
-            {
-                mdiClient.Paint += Rtl_Paint;
-            }
+            MdiRtlBackgorund();
 
 
         }
@@ -319,13 +338,134 @@ namespace SkinFramWorkCore
         #endregion
 
         #region Methods
+        private static void UpdateStyle(IntPtr hwnd)
+        {
+            // remove the border style
+            Int32 currentStyle = GetWindowLong(hwnd, GWLIndex.GWL_STYLE);
+            if ((currentStyle & (int)(WindowStyles.WS_BORDER)) != 0)
+            {
+                currentStyle &= ~(int)(WindowStyles.WS_BORDER);
+                SetWindowLong(hwnd, GWLIndex.GWL_STYLE, currentStyle);
+                SetWindowPos(hwnd, (IntPtr)0, -1, -1, -1, -1,
+                                      (int)(SWPFlags.SWP_NOZORDER | SWPFlags.SWP_NOSIZE | SWPFlags.SWP_NOMOVE |
+                                             SWPFlags.SWP_FRAMECHANGED | SWPFlags.SWP_NOREDRAW | SWPFlags.SWP_NOACTIVATE));
+            }
+        }
+        internal void PaintTransparentBackground(PaintEventArgs e, Rectangle rectangle, Region transparentRegion = null)
+        {
+            Graphics graphics = e.Graphics;
+            Control parentInternal = Parent;
+            if (parentInternal != null)
+            {
+                if (Application.RenderWithVisualStyles /*&& parentInternal.RenderTransparencyWithVisualStyles*/)
+                {
+                    GraphicsState gstate = null;
+                    if (transparentRegion != null)
+                        gstate = graphics.Save();
+                    try
+                    {
+                        if (transparentRegion != null)
+                            graphics.Clip = transparentRegion;
+                        ButtonRenderer.DrawParentBackground(graphics, rectangle, this);
+                    }
+                    finally
+                    {
+                        if (gstate != null)
+                            graphics.Restore(gstate);
+                    }
+                }
+                else
+                {
+                    Rectangle rectangle1 = new Rectangle(-Left, -Top, parentInternal.Width, parentInternal.Height);
+                    Rectangle clipRect = new Rectangle(rectangle.Left + Left, rectangle.Top + Top, rectangle.Width,
+                        rectangle.Height);
+                    using (Graphics windowsGraphics = graphics)
+                    {
+                        windowsGraphics.TranslateTransform(-Left, -Top);
+                        using (PaintEventArgs e1 = new PaintEventArgs(windowsGraphics, clipRect))
+                        {
+                            if (transparentRegion != null)
+                            {
+                                e1.Graphics.Clip = transparentRegion;
+                                e1.Graphics.TranslateClip(-rectangle1.X, -rectangle1.Y);
+                            }
+                            try
+                            {
+                                InvokePaintBackground(parentInternal, e1);
+                                InvokePaint(parentInternal, e1);
+                            }
+                            finally
+                            {
+                                if (transparentRegion != null)
+                                    e1.Graphics.TranslateClip(rectangle1.X, rectangle1.Y);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+                graphics.FillRectangle(SystemBrushes.Control, rectangle);
+        }
+
+        internal static void PaintBackColor(PaintEventArgs e, Rectangle rectangle, Color backColor)
+        {
+            Color color = backColor;
+            if (color.A == byte.MaxValue)
+            {
+                using (Graphics windowsGraphics = e.Graphics)
+                {
+                    Color nearestColor = windowsGraphics.GetNearestColor(color);
+                    using (Brush brush = new SolidBrush(nearestColor))
+                        windowsGraphics.FillRectangle(brush, rectangle);
+                }
+            }
+            else
+            {
+                if (color.A <= 0)
+                    return;
+                using (Brush brush = new SolidBrush(color))
+                    e.Graphics.FillRectangle(brush, rectangle);
+            }
+        }
+
+        internal static bool IsImageTransparent(Image backgroundImage)
+        {
+            return backgroundImage != null && (backgroundImage.Flags & 2) > 0;
+        }
+        internal void PaintBackground(PaintEventArgs e, Rectangle rectangle, Color backColor)
+        {
+            if (BackColor == Color.Transparent)
+                PaintTransparentBackground(e, rectangle);
+            var isMdiClient = Controls.Cast<Control>().OfType<MdiClient>().FirstOrDefault()!= null;
+            if (BackgroundImage != null && !SystemInformation.HighContrast && !isMdiClient)
+            {
+                if (BackgroundImageLayout == ImageLayout.Tile && IsImageTransparent(BackgroundImage))
+                    PaintTransparentBackground(e, rectangle);
+
+
+                if (IsImageTransparent(BackgroundImage))
+                    PaintBackColor(e, rectangle, backColor);
+                e.Graphics.DrawBackgroundImage(BackgroundImage, backColor, BackgroundImageLayout, ClientRectangle,
+                    rectangle, Point.Empty, RightToLeft);
+            }
+            else
+                PaintBackColor(e, rectangle, backColor);
+        }
         private void Rtl_Paint(object sender, PaintEventArgs e)
         {
-            if (BackgroundImage != null)
+
+            if (BackColor == Color.Transparent)
+                PaintTransparentBackground(e, e.ClipRectangle);
+            if (BackgroundImage != null && !SystemInformation.HighContrast)
             {
-                e.Graphics.DrawBackgroundImage(BackgroundImage, BackColor, BackgroundImageLayout, ClientRectangle, ClientRectangle, Point.Empty, RightToLeft);
+                if (BackgroundImageLayout == ImageLayout.Tile && IsImageTransparent(BackgroundImage))
+                    PaintTransparentBackground(e, ClientRectangle);
+                e.Graphics.DrawBackgroundImage(BackgroundImage, BackColor, BackgroundImageLayout, ClientRectangle,
+                    ClientRectangle, Point.Empty, RightToLeft);
             }
-           
+            else
+                PaintBackColor(e, e.ClipRectangle, BackColor);
+            
         }
         private void ResetNcTracking(IntPtr hwnd)
         {
@@ -472,6 +612,7 @@ namespace SkinFramWorkCore
                 paintParams.BlendFunction = new BP_PAINTPARAMS.BLENDFUNCTION(0, 0, 255, 1);
             }
             IntPtr memdc;
+            BufferedPaintInit();
             var hbuff = BeginBufferedPaint(hdc, ref winRect, BP_BUFFERFORMAT.DIB, ref paintParams, out memdc);
             var color = _isActive ? ActiveCaptionColor : InActiveCaptionColor;
             var ncColor = Color.FromArgb(NcOpacity, color);
@@ -487,15 +628,20 @@ namespace SkinFramWorkCore
                 {
                     nCGraphics.DrawIcon(new Icon(Icon, SystemInformation.SmallIconSize), 9, 7);
                 }
+                if (ControlBox)
+                {
+                    DrawCaptionButtons(width, nCGraphics);
+                }
                 if (RightToLeftLayout && RightToLeft == RightToLeft.Yes)
                 {
                     nCGraphics.Transform = new Matrix(-1, 0, 0, 1, width, 0);
                 }
+                
                 if (Text != null)
                 {
-                    var stringFormat = new StringFormat
+                    var stringFormat = new StringFormat(StringFormatFlags.NoWrap)
                     {
-                        Trimming = StringTrimming.EllipsisCharacter,
+                        Trimming = StringTrimming.EllipsisWord,
 
                     };
                     if (RightToLeftLayout && RightToLeft == RightToLeft.Yes)
@@ -503,20 +649,15 @@ namespace SkinFramWorkCore
                         nCGraphics.Transform = new Matrix(-1, 0, 0, 1, width - 17, 0);
                         stringFormat.FormatFlags = StringFormatFlags.DirectionRightToLeft;
                     }
-
-
-                    var i = RightToLeftLayout && RightToLeft == RightToLeft.Yes ? width - 17 - 31 : 31;
-                    nCGraphics.DrawString(Text, SystemFonts.CaptionFont, _isActive ? Brushes.White : Brushes.Black, i, 10,
+                    var i = RightToLeftLayout && RightToLeft == RightToLeft.Yes ? winRect.Width - 17 - 31 : 31;
+                    nCGraphics.DrawString(Text, SystemFonts.CaptionFont, _isActive ? Brushes.White : Brushes.Black, i,10,
                         stringFormat);
-                    if (ControlBox)
-                    {
-                        DrawCaptionButtons(width, nCGraphics);
-                    }
+                   
                 }
             }
             
             EndBufferedPaint(hbuff, true);
-
+            BufferedPaintUnInit();
             ReleaseDC(Handle, hdc);
         }
 
@@ -596,19 +737,19 @@ namespace SkinFramWorkCore
                 if (ControlBox)
                 {
 
-                    if (_downHitTest == NCHITTEST.HTCLOSE) Extensions.DrawCloseButton(nCGraphics, closeRect, (int)DwmButtonState.Pressed, _isActive);
+                    if (_downHitTest == NCHITTEST.HTCLOSE) DrawCloseButton(nCGraphics, closeRect, (int)DwmButtonState.Pressed, _isActive);
                     else if (_moveHitTest == NCHITTEST.HTCLOSE)
                     {
-                        if (_downHitTest == NCHITTEST.HTCLOSE) Extensions.DrawCloseButton(nCGraphics, closeRect, (int)DwmButtonState.Pressed, _isActive);
+                        if (_downHitTest == NCHITTEST.HTCLOSE) DrawCloseButton(nCGraphics, closeRect, (int)DwmButtonState.Pressed, _isActive);
                         else DrawCloseButton(nCGraphics, closeRect, (int)DwmButtonState.Hot, _isActive);
                     }
                     else DrawCloseButton(nCGraphics, closeRect, (int)DwmButtonState.Normal, _isActive);
                     if (MinimizeBox)
                     {
-                        if (_downHitTest == NCHITTEST.HTMINBUTTON) Extensions.DrawMinimizeButton(nCGraphics, minBtnRect.ToRectangle(), (int)DwmButtonState.Pressed, _isActive);
+                        if (_downHitTest == NCHITTEST.HTMINBUTTON) DrawMinimizeButton(nCGraphics, minBtnRect.ToRectangle(), (int)DwmButtonState.Pressed, _isActive);
                         else if (_moveHitTest == NCHITTEST.HTMINBUTTON)
                         {
-                            if (_downHitTest == NCHITTEST.HTMINBUTTON) Extensions.DrawMinimizeButton(nCGraphics, minBtnRect.ToRectangle(), (int)DwmButtonState.Pressed, _isActive);
+                            if (_downHitTest == NCHITTEST.HTMINBUTTON) DrawMinimizeButton(nCGraphics, minBtnRect.ToRectangle(), (int)DwmButtonState.Pressed, _isActive);
                             else DrawMinimizeButton(nCGraphics, minBtnRect.ToRectangle(), (int)DwmButtonState.Hot, _isActive);
                         }
                         else DrawMinimizeButton(nCGraphics, minBtnRect.ToRectangle(), (int)DwmButtonState.Normal, _isActive);
@@ -617,20 +758,20 @@ namespace SkinFramWorkCore
                     {
                         if (WindowState == FormWindowState.Maximized)
                         {
-                            if (_downHitTest == NCHITTEST.HTMAXBUTTON) Extensions.DrawRestorButton(nCGraphics, maxBtnRect.ToRectangle(), (int)DwmButtonState.Pressed, _isActive);
+                            if (_downHitTest == NCHITTEST.HTMAXBUTTON) DrawRestorButton(nCGraphics, maxBtnRect.ToRectangle(), (int)DwmButtonState.Pressed, _isActive);
                             else if (_moveHitTest == NCHITTEST.HTMAXBUTTON)
                             {
-                                if (_downHitTest == NCHITTEST.HTMAXBUTTON) Extensions.DrawRestorButton(nCGraphics, maxBtnRect.ToRectangle(), (int)DwmButtonState.Pressed, _isActive);
+                                if (_downHitTest == NCHITTEST.HTMAXBUTTON) DrawRestorButton(nCGraphics, maxBtnRect.ToRectangle(), (int)DwmButtonState.Pressed, _isActive);
                                 else DrawRestorButton(nCGraphics, maxBtnRect.ToRectangle(), (int)DwmButtonState.Hot, _isActive);
                             }
                             else DrawRestorButton(nCGraphics, maxBtnRect.ToRectangle(), (int)DwmButtonState.Normal, _isActive);
                         }
                         else
                         {
-                            if (_downHitTest == NCHITTEST.HTMAXBUTTON) Extensions.DrawMaximizeButton(nCGraphics, maxBtnRect.ToRectangle(), (int)DwmButtonState.Pressed, _isActive);
+                            if (_downHitTest == NCHITTEST.HTMAXBUTTON) DrawMaximizeButton(nCGraphics, maxBtnRect.ToRectangle(), (int)DwmButtonState.Pressed, _isActive);
                             else if (_moveHitTest == NCHITTEST.HTMAXBUTTON)
                             {
-                                if (_downHitTest == NCHITTEST.HTMAXBUTTON) Extensions.DrawMaximizeButton(nCGraphics, maxBtnRect.ToRectangle(), (int)DwmButtonState.Pressed, _isActive);
+                                if (_downHitTest == NCHITTEST.HTMAXBUTTON) DrawMaximizeButton(nCGraphics, maxBtnRect.ToRectangle(), (int)DwmButtonState.Pressed, _isActive);
                                 else DrawMaximizeButton(nCGraphics, maxBtnRect.ToRectangle(), (int)DwmButtonState.Hot, _isActive);
                             }
                             else DrawMaximizeButton(nCGraphics, maxBtnRect.ToRectangle(), (int)DwmButtonState.Normal, _isActive);
@@ -742,17 +883,23 @@ namespace SkinFramWorkCore
                 {
                     case CaptionButton.Close:
                         nCGraphics.DrawCaptionButton(closeRect, CaptionButton.Close, _buttonState, _isActive);
+                    if (this.IsDrawMinimizeBox())
                         nCGraphics.DrawCaptionButton(minBtnRect.ToRectangle(), minresBtn, disableState, _isActive);
+                    if (this.IsDrawMaximizeBox())
                         nCGraphics.DrawCaptionButton(maxBtnRect.ToRectangle(), resMaxBtn, disableState, _isActive);
                         break;
                     case CaptionButton.Minimize:
+                    if (this.IsDrawMinimizeBox())
                         nCGraphics.DrawCaptionButton(minBtnRect.ToRectangle(), minresBtn, _buttonState, _isActive);
                         nCGraphics.DrawCaptionButton(closeRect, CaptionButton.Close, disableState, _isActive);
+                    if (this.IsDrawMaximizeBox())
                         nCGraphics.DrawCaptionButton(maxBtnRect.ToRectangle(), resMaxBtn, disableState, _isActive);
                         break;
                     case CaptionButton.Maximize:
+                     if (this.IsDrawMaximizeBox())
                         nCGraphics.DrawCaptionButton(maxBtnRect.ToRectangle(), resMaxBtn, _buttonState, _isActive);
                         nCGraphics.DrawCaptionButton(closeRect, CaptionButton.Close, disableState, _isActive);
+                    if (this.IsDrawMinimizeBox())
                         nCGraphics.DrawCaptionButton(minBtnRect.ToRectangle(), minresBtn, disableState, _isActive);
                         break;
                     case CaptionButton.Restore:
@@ -762,7 +909,9 @@ namespace SkinFramWorkCore
 
                     case null:
                         nCGraphics.DrawCaptionButton(closeRect, CaptionButton.Close, disableState, _isActive);
+                    if (this.IsDrawMinimizeBox())
                         nCGraphics.DrawCaptionButton(minBtnRect.ToRectangle(), minresBtn, disableState, _isActive);
+                    if (this.IsDrawMaximizeBox())
                         nCGraphics.DrawCaptionButton(maxBtnRect.ToRectangle(), resMaxBtn, disableState, _isActive);
 
 
@@ -799,6 +948,8 @@ namespace SkinFramWorkCore
 
         }
         #endregion
+
+
     }
 
 }

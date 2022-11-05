@@ -35,10 +35,9 @@ namespace TestApp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BorderRadius = 10;
-            this.ClientSize = new System.Drawing.Size(866, 509);
+            this.CaptionHight = 50;
+            this.ClientSize = new System.Drawing.Size(866, 462);
             this.Name = "Form1";
-            this.NcOpacity = 100;
             this.Text = "Form1";
             this.ResumeLayout(false);
 
