@@ -43,12 +43,7 @@ namespace SkinFramWorkCore
                 return RightToLeft == RightToLeft.Yes && RightToLeftLayout;
             }
         }
-        // <summary>
-        /// Gets a value indicating if the maximize box needs to be drawn on the specified form.
-        /// </summary>
-        /// <param name="form">The form to check.</param>
-        /// <returns></returns>
-        
+       
         private static RECT DefultControlBoxBounds
         {
             get
