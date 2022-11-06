@@ -511,7 +511,7 @@ namespace SkinFramWorkCore
             SetWindowTheme(m.HWnd, "Window", "DWmWindow");
             if (AllowNcTransparency && !IsMdiChild)
             {
-                MARGINS win10Margins = new MARGINS(8, 8, 31, 8);
+                MARGINS win10Margins = new MARGINS(BorderWidth, BorderWidth, CaptionHight, BorderWidth);
                 MARGINS win11Margins = new MARGINS(1, 1, 1, 1);
                 MARGINS margins = GetMsstylePlatform() == Platform.Win11 ? win11Margins : win10Margins;
                 DwmExtendFrameIntoClientArea(m.HWnd, ref margins);

@@ -37,7 +37,7 @@ namespace TestApp
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImage = global::TestApp.Properties.Resources._4475e73c885921925f61fcf123c7c8c1f93e1c0c;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(896, 488);
+            this.ClientSize = new System.Drawing.Size(882, 472);
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);
