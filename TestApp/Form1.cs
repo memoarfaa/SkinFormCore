@@ -23,6 +23,7 @@ namespace TestApp
             }
         }
 
+
         private Image GetDeskTopWallpaper()
         {
             int SPI_GETDESKWALLPAPER = 0x73;

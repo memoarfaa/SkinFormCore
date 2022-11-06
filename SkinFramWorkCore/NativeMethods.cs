@@ -1512,7 +1512,8 @@ namespace SkinFramWorkCore
         [DllImport("uxtheme.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
         public static extern IntPtr OpenThemeData(IntPtr hWnd, string classList);
         [DllImport("uxtheme.dll", ExactSpelling = true)]
-        public extern static int IsThemeActive();
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public extern static bool IsThemeActive();
         #endregion
 
         #region Dwmapi

@@ -15,5 +15,7 @@ namespace SkinFramWorkCore
         {
             InitializeComponent();
         }
+
+       
     }
 }
