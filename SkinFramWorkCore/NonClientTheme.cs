@@ -29,16 +29,15 @@ namespace SkinFramWorkCore
         private CaptionButton? _captionButton = null;
         private static bool _isColorEnable = (int)
                            Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\DWM", "ColorPrevalence", 0) == 1;
-        private NCHITTEST _downHitTest;
-        private NCHITTEST _moveHitTest;
         private int _captionHeight = 31;
         private int _borderWidth = 8;
         private Color _activeCaptionColor = SystemColors.ActiveCaption;
         private int _ncOpacity = 255;
+        private int _borderRadius =0;
         #endregion
 
         #region Properties
-        public FormBorderStyle FormBorderStyle
+        public new FormBorderStyle FormBorderStyle
         {
             get
             {
@@ -153,7 +152,16 @@ namespace SkinFramWorkCore
         public Color InActiveCaptionColor { get; set; } = GetMsstylePlatform() == Platform.Win10 || GetMsstylePlatform() == Platform.Win11 ? Color.White : Color.FromArgb(235, 235, 235);
         [Category("Theme")]
         [Description("Set nonclient area round corners.")]
-        public int BorderRadius { get; set; }
+        public int BorderRadius 
+        { get 
+            { 
+                return _borderRadius;
+            } set 
+            {
+                _borderRadius = value;
+                InvalidateWindow();
+            } 
+        }
         private static Color activeCaption
         {
             get
@@ -296,7 +304,6 @@ namespace SkinFramWorkCore
                     OnWmNcMouseMove(ref m);
                     break;
                 case WindowsMessages.NCLBUTTONDOWN:
-                    _downHitTest = (NCHITTEST)m.WParam;
                     switch ((NCHITTEST)m.WParam)
                     {
 
@@ -350,8 +357,6 @@ namespace SkinFramWorkCore
                     ResetNcTracking(m.HWnd);
                     _captionButton = null;
                     _buttonState = DwmButtonState.Normal;
-                    _downHitTest = 0;
-                    _moveHitTest = 0;
                     OnWmNcPaint(ref m);
                     break;
                 case WindowsMessages.NCUAHDRAWCAPTION:
@@ -472,7 +477,7 @@ namespace SkinFramWorkCore
         }
         private void OnWmNcMouseMove(ref Message m)
         {
-            _moveHitTest = (NCHITTEST)m.WParam;
+           
             switch ((NCHITTEST)m.WParam)
             {
                 case NCHITTEST.HTMINBUTTON:
@@ -504,7 +509,7 @@ namespace SkinFramWorkCore
         {
             base.WndProc(ref m);
             SetWindowTheme(m.HWnd, "Window", "DWmWindow");
-            if (AllowNcTransparency)
+            if (AllowNcTransparency && !IsMdiChild)
             {
                 MARGINS win10Margins = new MARGINS(8, 8, 31, 8);
                 MARGINS win11Margins = new MARGINS(1, 1, 1, 1);
@@ -527,11 +532,12 @@ namespace SkinFramWorkCore
         }
         private void OnWmNcPaint(ref Message m)
         {
-            if (FormBorderStyle == FormBorderStyle.None) return;
+            
 
             //Windows 8 High Contrast theme not work with OpenThemeData its required app manifest so let's do default
             //See https://learn.microsoft.com/en-us/windows/win32/controls/supporting-high-contrast-themes
-            if (!IsThemeActive())
+
+            if (FormBorderStyle == FormBorderStyle.None || !IsThemeActive())
             {
                 base.WndProc(ref m);
                 return;
@@ -573,6 +579,11 @@ namespace SkinFramWorkCore
                 }
                 nCGraphics.Clear(ncColor);
 
+                
+                if (ControlBox)
+                {
+                    DrawCaptionButtons(width, nCGraphics);
+                }
                 if (ShowIcon)
                 {
                     nCGraphics.DrawIcon(new Icon(Icon, SystemInformation.SmallIconSize), 9, 7);
@@ -581,6 +592,7 @@ namespace SkinFramWorkCore
                 {
                     nCGraphics.Transform = new Matrix(-1, 0, 0, 1, width, 0);
                 }
+                
                 if (Text != null)
                 {
                     var stringFormat = new StringFormat
@@ -598,10 +610,7 @@ namespace SkinFramWorkCore
                     var i = RightToLeftLayout && RightToLeft == RightToLeft.Yes ? width - 17 - 31 : 31;
                     nCGraphics.DrawString(Text, SystemFonts.CaptionFont, IsActive ? Brushes.White : Brushes.Black, i, 10,
                         stringFormat);
-                    if (ControlBox)
-                    {
-                        DrawCaptionButtons(width, nCGraphics);
-                    }
+                    
                 }
             }
 
