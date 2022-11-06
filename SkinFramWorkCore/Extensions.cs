@@ -355,18 +355,7 @@ namespace SkinFramWorkCore
                     backgroundImageRectangle.X += clipRect.Width - backgroundImageRectangle.Width;
                 if (rightToLeft == RightToLeft.Yes)
                 {
-
                     g.Transform = new Matrix(-1, 0, 0, 1, bounds.Width, 0);
-                    Region reg = g.Clip;
-                    Rectangle r = bounds;
-                    reg.Exclude(r);
-                    //using (var solidBrush = new SolidBrush(backColor))
-
-
-
-                    //g.FillRectangle(solidBrush, clipRect);
-                    reg.Union(r); ;
-                    g.Clip = reg;
 
                 }
                 if (!clipRect.Contains(backgroundImageRectangle))
@@ -405,6 +394,15 @@ namespace SkinFramWorkCore
                     imageAttr.Dispose();
                 }
             }
+        }
+
+        public static Rectangle RtlRectangle(this Rectangle rectangle, int width)
+        {
+            return new Rectangle(
+                width - rectangle.Width - rectangle.X,
+                rectangle.Y,
+                rectangle.Width,
+                rectangle.Height);
         }
 
         public static bool IsDrawMaximizeBox(this Form form)

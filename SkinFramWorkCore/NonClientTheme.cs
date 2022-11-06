@@ -406,11 +406,101 @@ namespace SkinFramWorkCore
         }
         private void Rtl_Paint(object sender, PaintEventArgs e)
         {
-            if (BackgroundImage != null)
+            e.Graphics.Clear(BackColor);
+            if (RightToLeftLayout && RightToLeft == RightToLeft.Yes)
             {
-                e.Graphics.DrawBackgroundImage(BackgroundImage, BackColor, BackgroundImageLayout, ClientRectangle, ClientRectangle, Point.Empty, RightToLeft);
-            }
+                e.Graphics.Transform = new Matrix(-1, 0, 0, 1, Width - 17, 0);
 
+            }
+            var clipRectangle = e.ClipRectangle.RtlRectangle(Width - 17);
+            if ((HScroll || VScroll) && BackgroundImage != null &&
+                (BackgroundImageLayout == ImageLayout.Zoom || BackgroundImageLayout == ImageLayout.Stretch ||
+                 BackgroundImageLayout == ImageLayout.Center))
+            {
+                if (IsImageTransparent(BackgroundImage))
+                    PaintTransparentBackground(e, clipRectangle);
+                e.Graphics.DrawBackgroundImage(BackgroundImage, BackColor, BackgroundImageLayout, clipRectangle,
+                    clipRectangle, clipRectangle.Location, RightToLeft);
+            }
+            else
+            {
+                
+                PaintBackground(e, clipRectangle, BackColor);
+            }
+        }
+        private void PaintBackground(PaintEventArgs e, Rectangle rectangle, Color backColor)
+        {
+            if (BackColor == Color.Transparent)
+                PaintTransparentBackground(e, rectangle);
+            if (BackgroundImage != null && !SystemInformation.HighContrast)
+            {
+                if (BackgroundImageLayout == ImageLayout.Tile && IsImageTransparent(BackgroundImage))
+                    PaintTransparentBackground(e, rectangle);
+                e.Graphics.DrawBackgroundImage(BackgroundImage, backColor, BackgroundImageLayout, ClientRectangle,
+                    ClientRectangle, Point.Empty, RightToLeft);
+            }
+           
+        }
+
+        private void PaintTransparentBackground(PaintEventArgs e, Rectangle rectangle, Region transparentRegion = null)
+        {
+            Graphics graphics = e.Graphics;
+            Control parentInternal = Parent;
+            if (parentInternal != null)
+            {
+                if (Application.RenderWithVisualStyles /*&& parentInternal.RenderTransparencyWithVisualStyles*/)
+                {
+                    GraphicsState gstate = null;
+                    if (transparentRegion != null)
+                        gstate = graphics.Save();
+                    try
+                    {
+                        if (transparentRegion != null)
+                            graphics.Clip = transparentRegion;
+                        ButtonRenderer.DrawParentBackground(graphics, rectangle, this);
+                    }
+                    finally
+                    {
+                        if (gstate != null)
+                            graphics.Restore(gstate);
+                    }
+                }
+                else
+                {
+                    Rectangle rectangle1 = new Rectangle(-Left, -Top, parentInternal.Width, parentInternal.Height);
+                    Rectangle clipRect = new Rectangle(rectangle.Left + Left, rectangle.Top + Top, rectangle.Width, rectangle.Height);
+                    using (Graphics windowsGraphics = graphics)
+                    {
+                        windowsGraphics.TranslateTransform(-Left, -Top);
+                        using (PaintEventArgs e1 = new PaintEventArgs(windowsGraphics, clipRect))
+                        {
+                            if (transparentRegion != null)
+                            {
+                                e1.Graphics.Clip = transparentRegion;
+                                e1.Graphics.TranslateClip(-rectangle1.X, -rectangle1.Y);
+                            }
+                            try
+                            {
+                                InvokePaintBackground(parentInternal, e1);
+                                InvokePaint(parentInternal, e1);
+                            }
+                            finally
+                            {
+                                if (transparentRegion != null)
+                                    e1.Graphics.TranslateClip(rectangle1.X, rectangle1.Y);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+                graphics.FillRectangle(SystemBrushes.Control, rectangle);
+        }
+
+      
+        private static bool IsImageTransparent(Image backgroundImage)
+        {
+            return backgroundImage != null && (backgroundImage.Flags & 2) > 0;
         }
         private void ResetNcTracking(IntPtr hwnd)
         {
