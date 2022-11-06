@@ -336,9 +336,11 @@ namespace SkinFramWorkCore
                     {
 
                         case NCHITTEST.HTMINBUTTON:
+                            if(this.IsDrawMinimizeBox())
                             WindowState = WindowState == FormWindowState.Minimized ? FormWindowState.Normal : FormWindowState.Minimized;
                             break;
                         case NCHITTEST.HTMAXBUTTON:
+                            if(this.IsDrawMaximizeBox())
                             WindowState = WindowState == FormWindowState.Maximized ? FormWindowState.Normal : FormWindowState.Maximized;
                             break;
 
