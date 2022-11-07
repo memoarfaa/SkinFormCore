@@ -409,10 +409,10 @@ namespace SkinFramWorkCore
             e.Graphics.Clear(BackColor);
             if (RightToLeftLayout && RightToLeft == RightToLeft.Yes)
             {
-                e.Graphics.Transform = new Matrix(-1, 0, 0, 1, Width - 17, 0);
+                e.Graphics.Transform = new Matrix(-1, 0, 0, 1, Width - BorderWidth*2 + 1, 0);
 
             }
-            var clipRectangle = e.ClipRectangle.RtlRectangle(Width - 17);
+            var clipRectangle = e.ClipRectangle.RtlRectangle(Width - BorderWidth*2 + 1);
             if ((HScroll || VScroll) && BackgroundImage != null &&
                 (BackgroundImageLayout == ImageLayout.Zoom || BackgroundImageLayout == ImageLayout.Stretch ||
                  BackgroundImageLayout == ImageLayout.Center))
@@ -573,16 +573,23 @@ namespace SkinFramWorkCore
             switch ((NCHITTEST)m.WParam)
             {
                 case NCHITTEST.HTMINBUTTON:
-
-                    _captionButton = CaptionButton.Minimize;
-                    _buttonState = DwmButtonState.Hot;
-                    OnWmNcPaint(ref m);
+                    if(this.IsDrawMinimizeBox())
+                    {
+                        captionButton = CaptionButton.Minimize;
+                        _buttonState = DwmButtonState.Hot;
+                         OnWmNcPaint(ref m);
+                    }
+                    _
                     break;
                 case NCHITTEST.HTMAXBUTTON:
+                if(this.DrawMaximizeButton())}
+                {
                     _captionButton = CaptionButton.Maximize;
                     _buttonState = DwmButtonState.Hot;
                     OnWmNcPaint(ref m);
                     break;
+                }
+                   
 
                 case NCHITTEST.HTCLOSE:
                     _buttonState = DwmButtonState.Hot;

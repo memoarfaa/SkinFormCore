@@ -128,7 +128,7 @@ namespace SkinFramWorkCore
                         }
                         break;
                     case "10":
-                        if (int.Parse(versionToken[2]) <= 22000)
+                        if (int.Parse(versionToken[2]) < 22000)
                         {
                             return Platform.Win10;
                         }
