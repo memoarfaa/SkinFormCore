@@ -575,22 +575,23 @@ namespace SkinFramWorkCore
                 case NCHITTEST.HTMINBUTTON:
                     if(this.IsDrawMinimizeBox())
                     {
-                        captionButton = CaptionButton.Minimize;
+                        _captionButton = CaptionButton.Minimize;
                         _buttonState = DwmButtonState.Hot;
                          OnWmNcPaint(ref m);
                     }
-                    _
+                    
                     break;
                 case NCHITTEST.HTMAXBUTTON:
-                if(this.DrawMaximizeButton())}
+
+                if(this.IsDrawMaximizeBox())
                 {
                     _captionButton = CaptionButton.Maximize;
                     _buttonState = DwmButtonState.Hot;
                     OnWmNcPaint(ref m);
-                    break;
+                 
                 }
-                   
 
+                   break;
                 case NCHITTEST.HTCLOSE:
                     _buttonState = DwmButtonState.Hot;
                     _captionButton = CaptionButton.Close;
