@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 namespace SkinFramWorkCore
 {
-    public class DebugConsole
+    internal class DebugConsole
     {
         #region Methods
         /// <summary>
