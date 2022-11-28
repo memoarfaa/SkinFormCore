@@ -8,14 +8,11 @@ using System.Windows.Forms.VisualStyles;
 using Microsoft.Win32;
 using static Interop;
 using System.Diagnostics;
-using SkinFramWorkCore;
 using static SkinFramWorkCore.SkinExtensions;
-using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using System;
 using System.Drawing.Drawing2D;
-
 namespace SkinFramWorkCore
 {
     public partial class SkinForm : Form
@@ -25,7 +22,8 @@ namespace SkinFramWorkCore
         private bool _trackingMouseEvent;
         private int _captionHieght;
         private int _borderWidth;
-        private Color _activeCaptionColor = SystemColors.ActiveCaption;
+        private Color _activeCaptionColor;
+        private Color _inActiveCaptionColor;
         private DwmButtonState _buttonState = DwmButtonState.Normal;
         private CaptionButton? _captionButton;
         private int _ncOpacity = 255;
@@ -39,7 +37,6 @@ namespace SkinFramWorkCore
         public SkinForm()
         {
             InitializeComponent();
-            ActiveCaptionColor = DefaultCaptionColor;
             CaptionHieght = DefaultCaptionHieght(this);
             ControlBoxBounds = DefaultControlBoxBounds;
             BorderWidth = DefaultBorderWidth;
@@ -115,16 +112,18 @@ namespace SkinFramWorkCore
         /// <summary>
         /// return Default Caption Color
         /// </summary>
-        private static Color DefaultCaptionColor
+        private Color DefaultCaptionColor
         {
             get
             {
                 int? ColorizationColor;
                 int? ColorizationColorBalance;
+                int? Darkmodeval ;
                 try
                 {
                     ColorizationColor = (int?)Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\DWM", "ColorizationColor", 0);
                     ColorizationColorBalance = (int?)Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\DWM", "ColorizationColorBalance", 0);
+                    Darkmodeval = (int?)Registry.GetValue(@"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "AppsUseLightTheme", 1);
                     if (!ColorizationColor.HasValue || !ColorizationColorBalance.HasValue)
                         return SystemColors.ActiveBorder;
                     int ALPHA = (255 * ColorizationColorBalance.Value / 100); // Convert from 0-100 to 0-255
@@ -134,6 +133,10 @@ namespace SkinFramWorkCore
                     int r = (((RED * ALPHA) + (0xD9 * (255 - ALPHA))) / 255);
                     int g = (byte)(((GREEN * ALPHA) + (0xD9 * (255 - ALPHA))) / 255);
                     int b = (byte)(((BLUE * ALPHA) + (0xD9 * (255 - ALPHA))) / 255);
+                    if(Darkmodeval.HasValue  && Darkmodeval.Value == 0)
+                    {
+                        return Color.FromArgb(38, 38, 38);
+                    }
                     return IsColoredTitleBar || GetMsstylePlatform() is SkinPlatform.Win8 || GetMsstylePlatform() is SkinPlatform.Win81 ? Color.FromArgb(r, g, b) : Color.White;
                 }
                 catch (Exception ex)
@@ -143,7 +146,30 @@ namespace SkinFramWorkCore
                 }
             }
         }
-
+        private static Color DefaultInActiveCaptionColor
+        {
+            get
+            {
+                
+                int? Darkmodeval;
+                try
+                {
+                 
+                    Darkmodeval = (int?)Registry.GetValue(@"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "AppsUseLightTheme", 1);
+                    
+                    if (Darkmodeval.HasValue && Darkmodeval.Value == 0)
+                    {
+                        return Color.FromArgb(38, 38, 38);
+                    }
+                    return (GetMsstylePlatform() == SkinPlatform.Win10 || GetMsstylePlatform() == SkinPlatform.Win11) ? Color.White : Color.FromArgb(235, 235, 235);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex);
+                    return SystemColors.ActiveBorder;
+                }
+            }
+        }
         public new FormBorderStyle FormBorderStyle
         {
             get
@@ -200,14 +226,22 @@ namespace SkinFramWorkCore
         }
 
 
-        public Color InActiveCaptionColor { get; set; } = (GetMsstylePlatform() == SkinPlatform.Win10 || GetMsstylePlatform() == SkinPlatform.Win11) ? Color.White : Color.FromArgb(235, 235, 235);
+        public Color InActiveCaptionColor
+        {
+            get
+            {
+                return _inActiveCaptionColor;
 
+            }
+
+            set { _inActiveCaptionColor = value; }
+        }
 
         public Color ActiveCaptionColor
         {
             get
             {
-                return _activeCaptionColor;
+                return _activeCaptionColor ;
             }
             set
             {
@@ -302,7 +336,17 @@ namespace SkinFramWorkCore
                     base.WndProc(ref m);
                     SetRoundRegion();
                     break;
-
+                case WindowsMessages.SETTINGCHANGE:
+                case WindowsMessages.THEMECHANGED:
+                case WindowsMessages.DWMCOLORIZATIONCOLORCHANGED:
+                    base.WndProc(ref m);
+                    OnWmNcPaint(ref m);
+                    break;
+                //occurred if no transparency
+                case WindowsMessages.NCUAHDRAWCAPTION:
+                case WindowsMessages.NCUAHDRAWFRAME:
+                    OnWmNcPaint(ref m);
+                    break;
                 default:
                     base.WndProc(ref m);
                     break;
@@ -354,11 +398,7 @@ namespace SkinFramWorkCore
         private void Rtl_Paint(object? sender, PaintEventArgs e)
         {
             e.Graphics.Clear( IsMdiContainer ? SystemColors.AppWorkspace: BackColor);
-            if (RightToLeftLayout && RightToLeft == RightToLeft.Yes)
-            {
-                e.Graphics.Transform = new Matrix(-1, 0, 0, 1, Width - BorderWidth * 2 + 1, 0);
-
-            }
+            e.Graphics.Transform = new Matrix(-1, 0, 0, 1, Width - BorderWidth * 2 + 1, 0);
             var clipRectangle = e.ClipRectangle.RtlRectangle(Width - BorderWidth * 2 + 1);
             if ((HScroll || VScroll) && BackgroundImage != null &&
                 (BackgroundImageLayout == ImageLayout.Zoom || BackgroundImageLayout == ImageLayout.Stretch ||
@@ -510,51 +550,90 @@ namespace SkinFramWorkCore
                 case SkinPlatform.Win7:
                 case SkinPlatform.Win8:
                 case SkinPlatform.Win81:
-                    closeBtnRect = new Rectangle(width - BorderWidth - 45, 1, 45, btnbottom);
-                    maxBtnRect = new Rectangle(width - BorderWidth - closeBtnRect.Width - 25, 1, 25, btnbottom);
-                    minBtnRect = new Rectangle(width - BorderWidth - closeBtnRect.Width - 50, 1, 25, btnbottom);
+                    btnWidth = 46;
+                    int smallbtnWidth = 25;
+                    float dpi = CreateGraphics().DpiX / 96f;
+                    btnWidth = (int)(btnWidth * dpi);
+                    btnbottom = (int)(btnbottom * dpi);
+                    smallbtnWidth = (int)(smallbtnWidth * dpi);
+                    closeBtnRect = new Rectangle(width - BorderWidth - btnWidth , 1, btnWidth, btnbottom);
+                    maxBtnRect = new Rectangle(width - BorderWidth - btnWidth - smallbtnWidth, 1, smallbtnWidth, btnbottom);
+                    minBtnRect = new Rectangle(width - BorderWidth - btnWidth - smallbtnWidth*2, 1, smallbtnWidth, btnbottom);
+                    if (isMinimizedChild)
+                    {
+                        btnWidth = 40;
+                        closeBtnRect = new Rectangle(width - btnWidth, 1, btnWidth, btnbottom +8);
+                        maxBtnRect = new Rectangle(width - btnWidth * 2, 1, closeBtnRect.Width, btnWidth);
+                        minBtnRect = new Rectangle(width - btnWidth * 3, 1, closeBtnRect.Width, btnWidth);
+                    }
                     break;
                 case SkinPlatform.Win10:
                 case SkinPlatform.Win11:
                     closeBtnRect = new Rectangle(width - BorderWidth - btnWidth, 1, btnWidth, btnbottom);
                     maxBtnRect = new Rectangle(width - btnWidth * 2 - BorderWidth, 1, btnWidth, btnbottom);
                     minBtnRect = new Rectangle(width - btnWidth * 3 - BorderWidth, 1, btnWidth, btnbottom);
+                    if (isMinimizedChild)
+                    {
+                        btnWidth = 35;
+                        closeBtnRect = new Rectangle(width - BorderWidth - btnWidth, 1, btnWidth, btnbottom);
+                        maxBtnRect = new Rectangle(width - btnWidth * 2, 1, closeBtnRect.Width, btnWidth);
+                        minBtnRect = new Rectangle(width - btnWidth * 3, 1, closeBtnRect.Width, btnWidth);
+                    }
                     break;
             }
 
-            if (isMinimizedChild)
-            {
-                btnWidth = 35;
-                closeBtnRect = new Rectangle(width - BorderWidth - btnWidth, 1, btnWidth, btnbottom);
-                maxBtnRect = new Rectangle(width - btnWidth * 2, 1, closeBtnRect.Width, btnWidth);
-                minBtnRect = new Rectangle(width - btnWidth * 3, 1, closeBtnRect.Width, btnWidth);
-            }
+           
 
             CaptionButton resMaxBtn = WindowState == FormWindowState.Maximized ? CaptionButton.Restore : CaptionButton.Maximize;
             CaptionButton minresBtn = isMinimizedChild ? CaptionButton.Restore : CaptionButton.Minimize;
             DwmButtonState disableState = IsActive ? DwmButtonState.Normal : DwmButtonState.Disabled;
+            bool isDark =false ;
+            Color ncColor;
+            if (IsActive && GetMsstylePlatform() == SkinPlatform.Win10 || GetMsstylePlatform() == SkinPlatform.Win11)
+            {
+                 ncColor = ActiveCaptionColor != Color.Empty ? ActiveCaptionColor : DefaultCaptionColor;
+                if (ncColor.isDarkColor())
+                    {
+                        isDark = true;
+                    }
+            }
+
+            else if(!IsActive && GetMsstylePlatform() == SkinPlatform.Win10 || GetMsstylePlatform() == SkinPlatform.Win11)
+            {
+                int? Darkmodeval = (int?)Registry.GetValue(@"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "AppsUseLightTheme", 1);
+                ncColor = InActiveCaptionColor != Color.Empty ? InActiveCaptionColor : DefaultCaptionColor;
+                if (ncColor.isDarkColor() && GetMsstylePlatform() == SkinPlatform.Win10 || GetMsstylePlatform() == SkinPlatform.Win11  )
+                {
+                    if (Darkmodeval.HasValue && Darkmodeval.Value == 0)
+                        isDark = true;
+                }
+                else
+                isDark = false;
+            }
+           
+            
             switch (_captionButton)
             {
                 case CaptionButton.Close:
-                    nCGraphics.DrawCaptionButton(closeBtnRect, CaptionButton.Close, _buttonState, IsActive);
+                    nCGraphics.DrawCaptionButton(closeBtnRect, CaptionButton.Close, _buttonState, IsActive,isDark);
                     if (this.IsDrawMinimizeBox())
-                        nCGraphics.DrawCaptionButton(minBtnRect, minresBtn, disableState, IsActive);
+                        nCGraphics.DrawCaptionButton(minBtnRect, minresBtn, disableState, IsActive, isDark);
                     if (this.IsDrawMaximizeBox())
-                        nCGraphics.DrawCaptionButton(maxBtnRect, resMaxBtn, disableState, IsActive);
+                        nCGraphics.DrawCaptionButton(maxBtnRect, resMaxBtn, disableState, IsActive, isDark);
                     break;
                 case CaptionButton.Minimize:
                     if (this.IsDrawMinimizeBox())
-                        nCGraphics.DrawCaptionButton(minBtnRect, minresBtn, _buttonState, IsActive);
-                    nCGraphics.DrawCaptionButton(closeBtnRect, CaptionButton.Close, disableState, IsActive);
+                        nCGraphics.DrawCaptionButton(minBtnRect, minresBtn, _buttonState, IsActive, isDark);
+                    nCGraphics.DrawCaptionButton(closeBtnRect, CaptionButton.Close, disableState, IsActive, isDark);
                     if (this.IsDrawMaximizeBox())
-                        nCGraphics.DrawCaptionButton(maxBtnRect, resMaxBtn, disableState, IsActive);
+                        nCGraphics.DrawCaptionButton(maxBtnRect, resMaxBtn, disableState, IsActive, isDark);
                     break;
                 case CaptionButton.Maximize:
                     if (this.IsDrawMaximizeBox())
-                        nCGraphics.DrawCaptionButton(maxBtnRect, resMaxBtn, _buttonState, IsActive);
-                    nCGraphics.DrawCaptionButton(closeBtnRect, CaptionButton.Close, disableState, IsActive);
+                        nCGraphics.DrawCaptionButton(maxBtnRect, resMaxBtn, _buttonState, IsActive, isDark);
+                    nCGraphics.DrawCaptionButton(closeBtnRect, CaptionButton.Close, disableState, IsActive, isDark);
                     if (this.IsDrawMinimizeBox())
-                        nCGraphics.DrawCaptionButton(minBtnRect, minresBtn, disableState, IsActive);
+                        nCGraphics.DrawCaptionButton(minBtnRect, minresBtn, disableState, IsActive, isDark);
                     break;
                 case CaptionButton.Restore:
                     break;
@@ -562,11 +641,11 @@ namespace SkinFramWorkCore
                     break;
 
                 case null:
-                    nCGraphics.DrawCaptionButton(closeBtnRect, CaptionButton.Close, disableState, IsActive);
+                    nCGraphics.DrawCaptionButton(closeBtnRect, CaptionButton.Close, disableState, IsActive, isDark);
                     if (this.IsDrawMinimizeBox())
-                        nCGraphics.DrawCaptionButton(minBtnRect, minresBtn, disableState, IsActive);
+                        nCGraphics.DrawCaptionButton(minBtnRect, minresBtn, disableState, IsActive, isDark);
                     if (this.IsDrawMaximizeBox())
-                        nCGraphics.DrawCaptionButton(maxBtnRect, resMaxBtn, disableState, IsActive);
+                        nCGraphics.DrawCaptionButton(maxBtnRect, resMaxBtn, disableState, IsActive, isDark);
                     break;
                 default:
                     throw new IndexOutOfRangeException();
@@ -588,6 +667,7 @@ namespace SkinFramWorkCore
 
             int mdiMenuHeghit = Ismaxchild && MainMenuStrip is null ? User32.GetSystemMetrics(User32.SystemMetric.SM_CYMENUSIZE) : 0;
             int defaultCaptionHeight = Ismaxchild && MainMenuStrip is null ? DefaultCaptionHieght(this) : _captionHieght;
+
             int captionHeight = defaultCaptionHeight + mdiMenuHeghit;
             User32.NCCALCSIZE_PARAMS nccParama = Marshal.PtrToStructure<User32.NCCALCSIZE_PARAMS>(m.LParam);
             nccParama.rgrc0.left += BorderWidth;
@@ -661,7 +741,9 @@ namespace SkinFramWorkCore
                 //DrawThemeTextEx required BufferedPaint DIB to be TopDownDIB.
                 //see https://learn.microsoft.com/en-us/windows/win32/api/uxtheme/ns-uxtheme-dttopts DTT_COMPOSITED flag
                 UxTheme.HPAINTBUFFER bufferedPaint = UxTheme.BeginBufferedPaint(hdc, ref currentBounds, UxTheme.BP_BUFFERFORMAT.TopDownDIB, ref paintParams, out Gdi32.HDC memdc);
-                Color color = IsActive ? ActiveCaptionColor : InActiveCaptionColor;
+                Color activeColor = ActiveCaptionColor != Color.Empty ? ActiveCaptionColor : DefaultCaptionColor;
+                Color inActiveColor = InActiveCaptionColor != Color.Empty ? InActiveCaptionColor : DefaultInActiveCaptionColor;
+                Color color = IsActive ? activeColor : inActiveColor;
                 Color ncColor = Color.FromArgb(NcOpacity, color);
                 using (Graphics nCGraphics = Graphics.FromHdcInternal(memdc.Handle))
                 {
@@ -903,9 +985,15 @@ namespace SkinFramWorkCore
                 case SkinPlatform.Win7:
                 case SkinPlatform.Win8:
                 case SkinPlatform.Win81:
-                    closeBtnRect = new Rectangle(width - BorderWidth - 45, 1, 45, btnbottom);
-                    restoreRect = new Rectangle(width - BorderWidth - closeBtnRect.Width - 25, 1, 25, btnbottom);
-                    minRect = new Rectangle(width - BorderWidth - closeBtnRect.Width - 50, 1, 25, btnbottom);
+                    btnWidth = SystemInformation.CaptionButtonSize.Width;
+                    int smallbtnWidth = SystemInformation.SmallCaptionButtonSize.Width;
+                    float dpi = CreateGraphics().DpiX / 96f;
+                    btnWidth = (int)(btnWidth * dpi);
+                    smallbtnWidth = (int)(smallbtnWidth * dpi);
+                    btnbottom = (int)(btnbottom * dpi);
+                    closeBtnRect = new Rectangle(width - BorderWidth - btnWidth, 1, btnWidth, btnbottom);
+                    restoreRect = new Rectangle(width - BorderWidth - btnWidth - smallbtnWidth, 1, smallbtnWidth, btnbottom);
+                    minRect = new Rectangle(width - BorderWidth - btnWidth - smallbtnWidth * 2, 1, smallbtnWidth, btnbottom);
                     break;
                 case SkinPlatform.Win10:
                 case SkinPlatform.Win11:

@@ -23,7 +23,20 @@
         public abstract int BUTTONRESTOREGLYPH144 { get; set; }
         public abstract int BUTTONRESTOREGLYPH192 { get; set; }
         public virtual int BUTTONCLOSEGLYPH96DARK { get; set; }
-
-
+        public virtual int BUTTONCLOSEGLYPH120DARK { get; set; }
+        public virtual int BUTTONCLOSEGLYPH144DARK { get; set; }
+        public virtual int BUTTONCLOSEGLYPH192DARK { get; set; }
+        public virtual int BUTTONMAXGLYPH96DARK { get; set; }
+        public virtual int BUTTONMAXGLYPH120DARK { get; set; }
+        public virtual int BUTTONMAXGLYPH144DARK { get; set; }
+        public virtual int BUTTONMAXGLYPH192DARK { get; set; }
+        public virtual int BUTTONMINGLYPH96DARK { get; set; }
+        public virtual int BUTTONMINGLYPH120DARK { get; set; }
+        public virtual int BUTTONMINGLYPH144DARK { get; set; }
+        public virtual int BUTTONMINGLYPH192DARK { get; set; }
+        public virtual int BUTTONRESTOREGLYPH96DARK { get; set; }
+        public virtual int BUTTONRESTOREGLYPH120DARK { get; set; }
+        public virtual int BUTTONRESTOREGLYPH144DARK { get; set; }
+        public virtual int BUTTONRESTOREGLYPH192DARK { get; set; }
     }
 }

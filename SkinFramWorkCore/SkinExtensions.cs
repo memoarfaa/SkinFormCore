@@ -229,28 +229,34 @@ namespace SkinFramWorkCore
             // Return black for bright colors, white for dark colors
             return luma > 0.5 ? Color.Black : Color.White;
         }
-
-        internal static void DrawCloseButton(Graphics graphics, Rectangle rect, int state, bool active)
+        internal static bool isDarkColor(this Color iColor)
+        {
+            // Calculate the perceptive luminance (aka luma) - human eye favors green color...
+            double luma = ((0.299 * iColor.R) + (0.587 * iColor.G) + (0.114 * iColor.B)) / 255;
+            // Return black for bright colors, white for dark colors
+            return luma <= 0.5;
+        }
+        internal static void DrawCloseButton(Graphics graphics, Rectangle rect, int state, bool active,bool isDark = false)
         {
             var BackgrounImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECLOS : WindowCaption.BUTTONAINCTIVECLOS, state);
             int BUTTONCLOSEGLYPH = WindowCaption.BUTTONCLOSEGLYPH96;
             switch (graphics.DpiX)
             {
                 case 96:
-                    BUTTONCLOSEGLYPH = WindowCaption.BUTTONCLOSEGLYPH96;
+                    BUTTONCLOSEGLYPH = isDark ? WindowCaption.BUTTONCLOSEGLYPH96DARK : WindowCaption.BUTTONCLOSEGLYPH96;
                     break;
                 case 120:
-                    BUTTONCLOSEGLYPH = WindowCaption.BUTTONCLOSEGLYPH120;
+                    BUTTONCLOSEGLYPH = isDark ? WindowCaption.BUTTONCLOSEGLYPH120DARK : WindowCaption.BUTTONCLOSEGLYPH120;
                     break;
                 case 144:
-                    BUTTONCLOSEGLYPH = WindowCaption.BUTTONCLOSEGLYPH144;
+                    BUTTONCLOSEGLYPH = isDark ? WindowCaption.BUTTONCLOSEGLYPH144DARK : WindowCaption.BUTTONCLOSEGLYPH144;
                     break;
                 case 168:
                 case 192:
-                    BUTTONCLOSEGLYPH = WindowCaption.BUTTONCLOSEGLYPH192;
+                    BUTTONCLOSEGLYPH = isDark ? WindowCaption.BUTTONCLOSEGLYPH192DARK : WindowCaption.BUTTONCLOSEGLYPH192;
                     break;
             }
-
+            
             var Image = GetDwmWindowButton(BUTTONCLOSEGLYPH, active ? state : (int)DwmButtonState.Disabled);
             if (BackgrounImage == null || Image == null)
                 return;
@@ -260,24 +266,24 @@ namespace SkinFramWorkCore
             graphics.DrawImage(Image, bounRect);
         }
 
-        internal static void DrawMinimizeButton(Graphics graphics, Rectangle rect, int state, bool active)
+        internal static void DrawMinimizeButton(Graphics graphics, Rectangle rect, int state, bool active, bool isDark = false)
         {
             var BackgrounImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECAPTION : WindowCaption.BUTTONINACTIVECAPTION, state);
             int BUTTONMINGLYPH = WindowCaption.BUTTONMINGLYPH96;
             switch (graphics.DpiX)
             {
                 case 96:
-                    BUTTONMINGLYPH = WindowCaption.BUTTONMINGLYPH96;
+                    BUTTONMINGLYPH = isDark ? WindowCaption.BUTTONMINGLYPH96DARK : WindowCaption.BUTTONMINGLYPH96;
                     break;
                 case 120:
-                    BUTTONMINGLYPH = WindowCaption.BUTTONMINGLYPH120;
+                    BUTTONMINGLYPH = isDark ? WindowCaption.BUTTONMINGLYPH120DARK : WindowCaption.BUTTONMINGLYPH120;
                     break;
                 case 144:
-                    BUTTONMINGLYPH = WindowCaption.BUTTONMINGLYPH144;
+                    BUTTONMINGLYPH = isDark ? WindowCaption.BUTTONMINGLYPH144DARK : WindowCaption.BUTTONMINGLYPH144;
                     break;
                 case 168:
                 case 192:
-                    BUTTONMINGLYPH = WindowCaption.BUTTONMINGLYPH192;
+                    BUTTONMINGLYPH = isDark ? WindowCaption.BUTTONMINGLYPH192DARK : WindowCaption.BUTTONMINGLYPH192;
                     break;
             }
 
@@ -290,24 +296,24 @@ namespace SkinFramWorkCore
             graphics.DrawImage(Image, bounRect);
         }
 
-        internal static void DrawMaximizeButton(Graphics graphics, Rectangle rect, int state, bool active)
+        internal static void DrawMaximizeButton(Graphics graphics, Rectangle rect, int state, bool active, bool isDark = false)
         {
             var BackgrounImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECAPTION : WindowCaption.BUTTONINACTIVECAPTION, state);
             int BUTTONMAXGLYPH = WindowCaption.BUTTONMAXGLYPH96;
             switch (graphics.DpiX)
             {
                 case 96:
-                    BUTTONMAXGLYPH = WindowCaption.BUTTONMAXGLYPH96;
+                    BUTTONMAXGLYPH = isDark ? WindowCaption.BUTTONMAXGLYPH96DARK : WindowCaption.BUTTONMAXGLYPH96;
                     break;
                 case 120:
-                    BUTTONMAXGLYPH = WindowCaption.BUTTONMAXGLYPH120;
+                    BUTTONMAXGLYPH = isDark ? WindowCaption.BUTTONMAXGLYPH120DARK : WindowCaption.BUTTONMAXGLYPH120;
                     break;
                 case 144:
-                    BUTTONMAXGLYPH = WindowCaption.BUTTONMAXGLYPH144;
+                    BUTTONMAXGLYPH = isDark ? WindowCaption.BUTTONMAXGLYPH144DARK : WindowCaption.BUTTONMAXGLYPH144;
                     break;
                 case 168:
                 case 192:
-                    BUTTONMAXGLYPH = WindowCaption.BUTTONMAXGLYPH192;
+                    BUTTONMAXGLYPH = isDark ? WindowCaption.BUTTONMAXGLYPH192DARK : WindowCaption.BUTTONMAXGLYPH192;
                     break;
             }
 
@@ -320,10 +326,27 @@ namespace SkinFramWorkCore
             graphics.DrawImage(Image, bounRect);
         }
 
-        internal static void DrawRestorButton(Graphics graphics, Rectangle rect, int state, bool active)
+        internal static void DrawRestorButton(Graphics graphics, Rectangle rect, int state, bool active, bool isDark)
         {
             var BackgrounImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECAPTION : WindowCaption.BUTTONINACTIVECAPTION, state);
-            var Image = GetDwmWindowButton(WindowCaption.BUTTONRESTOREGLYPH96, active ? state : (int)DwmButtonState.Disabled);
+            int BUTTONRESTOREGLYPH = WindowCaption.BUTTONRESTOREGLYPH96;
+            switch (graphics.DpiX)
+            {
+                case 96:
+                    BUTTONRESTOREGLYPH = isDark ? WindowCaption.BUTTONRESTOREGLYPH96DARK : WindowCaption.BUTTONRESTOREGLYPH96;
+                    break;
+                case 120:
+                    BUTTONRESTOREGLYPH = isDark ? WindowCaption.BUTTONRESTOREGLYPH120DARK : WindowCaption.BUTTONMAXGLYPH120;
+                    break;
+                case 144:
+                    BUTTONRESTOREGLYPH = isDark ? WindowCaption.BUTTONRESTOREGLYPH144DARK : WindowCaption.BUTTONMAXGLYPH144;
+                    break;
+                case 168:
+                case 192:
+                    BUTTONRESTOREGLYPH = isDark ? WindowCaption.BUTTONRESTOREGLYPH192DARK : WindowCaption.BUTTONMAXGLYPH192;
+                    break;
+            }
+            var Image = GetDwmWindowButton(BUTTONRESTOREGLYPH, active ? state : (int)DwmButtonState.Disabled);
             if (BackgrounImage == null || Image == null)
                 return;
             graphics.DrawImage(BackgrounImage, rect);
@@ -452,21 +475,21 @@ namespace SkinFramWorkCore
         }
 
 
-        internal static void DrawCaptionButton(this Graphics graphics, Rectangle rect, CaptionButton captionButton, DwmButtonState state, bool active)
+        internal static void DrawCaptionButton(this Graphics graphics, Rectangle rect, CaptionButton captionButton, DwmButtonState state, bool active,bool isDark =false)
         {
             switch (captionButton)
             {
                 case CaptionButton.Close:
-                    DrawCloseButton(graphics, rect, (int)state, active);
+                    DrawCloseButton(graphics, rect, (int)state, active,isDark);
                     break;
                 case CaptionButton.Minimize:
-                    DrawMinimizeButton(graphics, rect, (int)state, active);
+                    DrawMinimizeButton(graphics, rect, (int)state, active,isDark);
                     break;
                 case CaptionButton.Maximize:
-                    DrawMaximizeButton(graphics, rect, (int)state, active);
+                    DrawMaximizeButton(graphics, rect, (int)state, active, isDark);
                     break;
                 case CaptionButton.Restore:
-                    DrawRestorButton(graphics, rect, (int)state, active);
+                    DrawRestorButton(graphics, rect, (int)state, active,isDark);
                     break;
                 case CaptionButton.Help:
                     break;
