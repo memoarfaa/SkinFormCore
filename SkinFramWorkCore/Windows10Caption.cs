@@ -23,6 +23,21 @@
         public override int BUTTONRESTOREGLYPH144 { get; set; } = 29;
         public override int BUTTONRESTOREGLYPH192 { get; set; } = 30;
         public override int BUTTONCLOSEGLYPH96DARK { get; set; } = 64;
+        public override int BUTTONCLOSEGLYPH120DARK { get; set; } = 65;
+        public override int BUTTONCLOSEGLYPH144DARK { get; set; } = 66;
+        public override int BUTTONCLOSEGLYPH192DARK { get; set; } = 67;
+        public override int BUTTONMAXGLYPH96DARK { get; set; } = 72;
+        public override int BUTTONMAXGLYPH120DARK { get; set; } = 73;
+        public override int BUTTONMAXGLYPH144DARK { get; set; } = 74;
+        public override int BUTTONMAXGLYPH192DARK { get; set; } = 75;
+        public override int BUTTONMINGLYPH96DARK { get; set; } = 76;
+        public override int BUTTONMINGLYPH120DARK { get; set; } = 77;
+        public override int BUTTONMINGLYPH144DARK { get; set; } = 78;
+        public override int BUTTONMINGLYPH192DARK { get; set; } = 79;
+        public override int BUTTONRESTOREGLYPH96DARK { get; set; } = 80;
+        public override int BUTTONRESTOREGLYPH120DARK { get; set; } = 81;
+        public override int BUTTONRESTOREGLYPH144DARK { get; set; } = 82;
+        public override int BUTTONRESTOREGLYPH192DARK { get; set; } = 83;
 
 
     }
