@@ -142,7 +142,7 @@
             this.captionHeightToolStripMenuItem.Name = "captionHeightToolStripMenuItem";
             this.captionHeightToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
             this.captionHeightToolStripMenuItem.Text = "Caption Height";
-            this.captionHeightToolStripMenuItem.Click += new System.EventHandler(this.captionHeightToolStripMenuItem_Click);
+            this.captionHeightToolStripMenuItem.Click += new System.EventHandler(this.CaptionHieghtToolStripMenuItem_Click);
             // 
             // desktopBackgroundToolStripMenuItem
             // 

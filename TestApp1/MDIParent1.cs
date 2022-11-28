@@ -29,7 +29,7 @@ namespace TestApp1
             InitializeComponent();
             RightToLeft = Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? RightToLeft.Yes : RightToLeft.No;
             RightToLeftLayout = Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft;
-            frmSubmit = new SkinForm { RightToLeft = RightToLeft, RightToLeftLayout = RightToLeftLayout, Text = "Window", BorderWidth = BorderWidth, CaptionHeight = CaptionHeight, BorderRadius = BorderRadius, NcOpacity = NcOpacity, StartPosition = FormStartPosition.CenterParent, AllowNcTransparency = AllowNcTransparency, Size = new Size(240, 200) };
+            frmSubmit = new SkinForm { RightToLeft = RightToLeft, RightToLeftLayout = RightToLeftLayout, Text = "Window", BorderWidth = BorderWidth, CaptionHieght = CaptionHieght, BorderRadius = BorderRadius, NcOpacity = NcOpacity, StartPosition = FormStartPosition.CenterParent, AllowNcTransparency = AllowNcTransparency, Size = new Size(240, 200) };
             txtBorders = new TextBox();
             txtBorders.Location = new Point(50, 60);
             txtBorders.Size = new Size(120, 23);
@@ -46,7 +46,7 @@ namespace TestApp1
             labelBorders.Location = new Point(35, 25);
             labelBorders.Size = new Size(155, 15);
             frmSubmit.Controls.Add(labelBorders);
-            frmChild = new SkinForm { MdiParent = this, RightToLeft = RightToLeft, RightToLeftLayout = RightToLeftLayout, Text = "frmChild", BorderWidth = BorderWidth, CaptionHeight = CaptionHeight, BorderRadius = BorderRadius, NcOpacity = NcOpacity, StartPosition = FormStartPosition.CenterScreen, AllowNcTransparency = AllowNcTransparency };
+            frmChild = new SkinForm { MdiParent = this, RightToLeft = RightToLeft, RightToLeftLayout = RightToLeftLayout, Text = "frmChild", BorderWidth = BorderWidth, CaptionHieght = CaptionHieght, BorderRadius = BorderRadius, NcOpacity = NcOpacity, StartPosition = FormStartPosition.CenterScreen, AllowNcTransparency = AllowNcTransparency };
            
             btnToggleMenuStrip = new Button { Text = "Toggle MenuStrip", Size = new Size(160, 30) };
             btnToggleMenuStrip.Click += BtnToggleMenuStrip_Click;
@@ -173,7 +173,7 @@ namespace TestApp1
 
         private void newFormToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SkinForm form = new SkinForm { RightToLeft = RightToLeft, RightToLeftLayout = RightToLeftLayout, Text = "Form1", BorderWidth = BorderWidth, CaptionHeight = CaptionHeight, BorderRadius = BorderRadius, NcOpacity = NcOpacity, StartPosition = FormStartPosition.CenterParent, AllowNcTransparency = AllowNcTransparency, Size = new Size(1024, 768), BackgroundImage = BackgroundImage, BackgroundImageLayout = BackgroundImageLayout , ActiveCaptionColor = ActiveCaptionColor, InActiveCaptionColor = InActiveCaptionColor };
+            SkinForm form = new SkinForm { RightToLeft = RightToLeft, RightToLeftLayout = RightToLeftLayout, Text = "Form1", BorderWidth = BorderWidth, CaptionHieght = CaptionHieght, BorderRadius = BorderRadius, NcOpacity = NcOpacity, StartPosition = FormStartPosition.CenterParent, AllowNcTransparency = AllowNcTransparency, Size = new Size(1024, 768), BackgroundImage = BackgroundImage, BackgroundImageLayout = BackgroundImageLayout , ActiveCaptionColor = ActiveCaptionColor, InActiveCaptionColor = InActiveCaptionColor };
             WindowState = FormWindowState.Minimized;
             form.Closing += delegate { WindowState = FormWindowState.Maximized; };
             form.Show();
@@ -181,7 +181,7 @@ namespace TestApp1
 
         private void newChildFormToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SkinForm frmChild = new SkinForm { MdiParent = this, RightToLeft = RightToLeft, RightToLeftLayout = RightToLeftLayout, Text = "frmChild " + childFormNumber++, BorderWidth = BorderWidth, CaptionHeight = CaptionHeight, BorderRadius = BorderRadius, NcOpacity = NcOpacity, BackgroundImage = BackgroundImage, BackgroundImageLayout = BackgroundImageLayout, AllowNcTransparency = AllowNcTransparency,ActiveCaptionColor = ActiveCaptionColor,InActiveCaptionColor = InActiveCaptionColor };
+            SkinForm frmChild = new SkinForm { MdiParent = this, RightToLeft = RightToLeft, RightToLeftLayout = RightToLeftLayout, Text = "frmChild " + childFormNumber++, BorderWidth = BorderWidth, CaptionHieght = CaptionHieght, BorderRadius = BorderRadius, NcOpacity = NcOpacity, BackgroundImage = BackgroundImage, BackgroundImageLayout = BackgroundImageLayout, AllowNcTransparency = AllowNcTransparency,ActiveCaptionColor = ActiveCaptionColor,InActiveCaptionColor = InActiveCaptionColor };
             frmChild.Show();
         }
 
@@ -241,7 +241,7 @@ namespace TestApp1
             labelBorders.Text = "Insert Border Opacity";
             frmSubmit.ShowDialog(this);
         }
-        private void captionHeightToolStripMenuItem_Click(object sender, EventArgs e)
+        private void CaptionHieghtToolStripMenuItem_Click(object sender, EventArgs e)
         {
             labelBorders.Text = "Insert Caption Height";
             frmSubmit.ShowDialog(this);
@@ -326,13 +326,13 @@ namespace TestApp1
                             bool isnumber = int.TryParse(txtBorders.Text, out captionHieght);
                             if (isnumber && captionHieght > 0)
                             {
-                                CaptionHeight = frmChild.CaptionHeight = frmSubmit.CaptionHeight = captionHieght;
+                                CaptionHieght = frmChild.CaptionHieght = frmSubmit.CaptionHieght = captionHieght;
                                 InvalidateForm(this);
                                 InvalidateForm(frmChild);
                                 InvalidateForm(frmSubmit);
                                 MdiChildren.ToList().ForEach(child =>
                                 {
-                                    ((SkinForm)child).CaptionHeight = captionHieght;
+                                    ((SkinForm)child).CaptionHieght = captionHieght;
                                     InvalidateForm(child);
                                 });
                             }

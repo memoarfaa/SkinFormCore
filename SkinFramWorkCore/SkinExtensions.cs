@@ -263,8 +263,8 @@ namespace SkinFramWorkCore
                     BUTTONCLOSEGLYPH = isDark ? WindowCaption.BUTTONCLOSEGLYPH192DARK : WindowCaption.BUTTONCLOSEGLYPH192;
                     break;
             }
-            var Image = GetDwmWindowButton(BUTTONCLOSEGLYPH, active ? state : (int)DwmButtonState.Disabled);
-            if (BackgrounImage == null || Image == null)
+            var image = GetDwmWindowButton(BUTTONCLOSEGLYPH, active ? state : (int)DwmButtonState.Disabled);
+            if (backgroundImage == null || image == null)
                 return;
             graphics.DrawImage(backgroundImage, rect);
             var boundRect = new Rectangle((rect.Width - image.Width) / 2, (rect.Height - image.Height) / 2, image.Width, image.Height);
@@ -336,7 +336,7 @@ namespace SkinFramWorkCore
        
         internal static void DrawRestorButton(Graphics graphics, Rectangle rect, int state, bool active, bool isDark)
         {
-            var BackgrounImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECAPTION : WindowCaption.BUTTONINACTIVECAPTION, state);
+            var backgrounImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECAPTION : WindowCaption.BUTTONINACTIVECAPTION, state);
             int BUTTONRESTOREGLYPH = WindowCaption.BUTTONRESTOREGLYPH96;
             switch (graphics.DpiX)
             {
@@ -354,10 +354,10 @@ namespace SkinFramWorkCore
                     BUTTONRESTOREGLYPH = isDark ? WindowCaption.BUTTONRESTOREGLYPH192DARK : WindowCaption.BUTTONMAXGLYPH192;
                     break;
             }
-            var Image = GetDwmWindowButton(BUTTONRESTOREGLYPH, active ? state : (int)DwmButtonState.Disabled);
-            if (BackgrounImage == null || Image == null)
+            var image = GetDwmWindowButton(BUTTONRESTOREGLYPH, active ? state : (int)DwmButtonState.Disabled);
+            if (backgrounImage == null || image == null)
                 return;
-            graphics.DrawImage(backgroundImage, rect);
+            graphics.DrawImage(backgrounImage, rect);
             var boundRect = new Rectangle((rect.Width - image.Width) / 2, (rect.Height - image.Height) / 2, image.Width, image.Height);
             boundRect.Offset(rect.Location);
             graphics.DrawImage(image, boundRect);

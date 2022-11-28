@@ -40,7 +40,7 @@ namespace SkinFramWorkCore
         {
             InitializeComponent();
 
-            CaptionHieght = DefaultCaptionHieght(this);
+            CaptionHieght = DefaultCaptionHeight(this);
             ControlBoxBounds = DefaultControlBoxBounds;
             BorderWidth = DefaultBorderWidth;
         }
@@ -164,7 +164,7 @@ namespace SkinFramWorkCore
                     {
                         return Color.FromArgb(38, 38, 38);
                     }
-                    return (MsStylePlatform == SkinPlatform.Win10 || MsStylePlatform == SkinPlatform.Win11) ? Color.White : Color.FromArgb(235, 235, 235)
+                    return (MsStylePlatform == SkinPlatform.Win10 || MsStylePlatform == SkinPlatform.Win11) ? Color.White : Color.FromArgb(235, 235, 235);
                 }
                 catch (Exception ex)
                 {
@@ -676,8 +676,8 @@ namespace SkinFramWorkCore
 
 
             //mdi menu heghit
-            int mdiMenuHeghit = Ismaxchild && MainMenuStrip is null ? User32.GetSystemMetrics(User32.SystemMetric.SM_CYMENUSIZE) : 0;
-            int defaultCaptionHeight = Ismaxchild && MainMenuStrip is null ? DefaultCaptionHieght(this) : _captionHieght;
+            int mdiMenuHeghit = IsMaxChild && MainMenuStrip is null ? User32.GetSystemMetrics(User32.SystemMetric.SM_CYMENUSIZE) : 0;
+            int defaultCaptionHeight = IsMaxChild && MainMenuStrip is null ? DefaultCaptionHeight(this) : _captionHeight;
             //true caption height
             int captionHeight = defaultCaptionHeight + mdiMenuHeghit;
             User32.NCCALCSIZE_PARAMS nccParama = Marshal.PtrToStructure<User32.NCCALCSIZE_PARAMS>(m.LParam);
@@ -688,7 +688,7 @@ namespace SkinFramWorkCore
             Marshal.StructureToPtr(nccParama, m.LParam, true);
             if (AllowNcTransparency && !IsMdiChild)
             {
-                UxTheme.MARGINS winMargins = new UxTheme.MARGINS { cxLeftWidth = BorderWidth, cxRightWidth = BorderWidth, cyTopHeight = CaptionHeight, cyBottomHeight = BorderWidth };
+                UxTheme.MARGINS winMargins = new UxTheme.MARGINS { cxLeftWidth = BorderWidth, cxRightWidth = BorderWidth, cyTopHeight = CaptionHieght, cyBottomHeight = BorderWidth };
                 UxTheme.MARGINS win11Margins = new UxTheme.MARGINS { cxLeftWidth = 1, cxRightWidth = 1, cyTopHeight = 1, cyBottomHeight = 1 };
                 UxTheme.MARGINS margins = MsStylePlatform == SkinPlatform.Win11 ? win11Margins : winMargins;
                 Dwmapi.DwmExtendFrameIntoClientArea(this.Handle, ref margins);
