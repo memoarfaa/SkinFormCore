@@ -4,8 +4,8 @@
     {
         public override int BUTTONACTIVECAPTION { get; set; } = 3;
         public override int BUTTONINACTIVECAPTION { get; set; } = 4;
-        public override int BUTTONACTIVECLOS { get; set; } = 7;
-        public override int BUTTONAINCTIVECLOS { get; set; } = 8;
+        public override int BUTTONACTIVECLOSE { get; set; } = 7;
+        public override int BUTTONINACTIVECLOSE { get; set; } = 8;
         public override int BUTTONCLOSEGLYPH96 { get; set; } = 12;
         public override int BUTTONCLOSEGLYPH120 { get; set; } = 13;
         public override int BUTTONCLOSEGLYPH144 { get; set; } = 14;
