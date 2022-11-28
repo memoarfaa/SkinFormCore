@@ -37,7 +37,7 @@ namespace SkinFramWorkCore
             Disabled = 4
         }
 
-       
+
         internal static Bitmap GetImageAtlasFromTheme()
         {
             hTheme = UxTheme.OpenThemeData(IntPtr.Zero, "DWMWINDOW");
@@ -75,10 +75,17 @@ namespace SkinFramWorkCore
             }
         }
 
+        static SkinExtensions()
+        {
+            MsStylePlatform = GetMsstylePlatform();
+        }
+        
+        internal static SkinPlatform MsStylePlatform { get; private set; }
+
         internal static SkinPlatform GetMsstylePlatform()
         {
             var currentMsstylePath = Registry.GetValue(@"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\ThemeManager", "DllName", string.Empty)?.ToString();
-            if(string.IsNullOrEmpty(currentMsstylePath))
+            if (string.IsNullOrEmpty(currentMsstylePath))
                 return SkinPlatform.Win10;
             var fileVersionInfo = FileVersionInfo.GetVersionInfo(currentMsstylePath);
             var fileVersion = fileVersionInfo.FileVersion;
@@ -118,7 +125,7 @@ namespace SkinFramWorkCore
         {
             get
             {
-                switch (GetMsstylePlatform())
+                switch (MsStylePlatform)
                 {
                     case SkinPlatform.Vista:
                     case SkinPlatform.Win7:
@@ -225,14 +232,14 @@ namespace SkinFramWorkCore
         internal static Color ContrastColor(this Color iColor)
         {
             // Calculate the perceptive luminance (aka luma) - human eye favors green color...
-             double luma = ((0.299 * iColor.R) + (0.587 * iColor.G) + (0.114 * iColor.B)) / 255;
+            double luma = ((0.299 * iColor.R) + (0.587 * iColor.G) + (0.114 * iColor.B)) / 255;
             // Return black for bright colors, white for dark colors
             return luma > 0.5 ? Color.Black : Color.White;
         }
 
         internal static void DrawCloseButton(Graphics graphics, Rectangle rect, int state, bool active)
         {
-            var BackgrounImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECLOS : WindowCaption.BUTTONAINCTIVECLOS, state);
+            var backgroundImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECLOSE : WindowCaption.BUTTONINACTIVECLOSE, state);
             int BUTTONCLOSEGLYPH = WindowCaption.BUTTONCLOSEGLYPH96;
             switch (graphics.DpiX)
             {
@@ -251,18 +258,18 @@ namespace SkinFramWorkCore
                     break;
             }
 
-            var Image = GetDwmWindowButton(BUTTONCLOSEGLYPH, active ? state : (int)DwmButtonState.Disabled);
-            if (BackgrounImage == null || Image == null)
+            var image = GetDwmWindowButton(BUTTONCLOSEGLYPH, active ? state : (int)DwmButtonState.Disabled);
+            if (backgroundImage == null || image == null)
                 return;
-            graphics.DrawImage(BackgrounImage, rect);
-            var bounRect = new Rectangle((rect.Width - Image.Width) / 2, (rect.Height - Image.Height) / 2, Image.Width, Image.Height);
-            bounRect.Offset(rect.Location);
-            graphics.DrawImage(Image, bounRect);
+            graphics.DrawImage(backgroundImage, rect);
+            var boundRect = new Rectangle((rect.Width - image.Width) / 2, (rect.Height - image.Height) / 2, image.Width, image.Height);
+            boundRect.Offset(rect.Location);
+            graphics.DrawImage(image, boundRect);
         }
 
         internal static void DrawMinimizeButton(Graphics graphics, Rectangle rect, int state, bool active)
         {
-            var BackgrounImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECAPTION : WindowCaption.BUTTONINACTIVECAPTION, state);
+            var backgroundImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECAPTION : WindowCaption.BUTTONINACTIVECAPTION, state);
             int BUTTONMINGLYPH = WindowCaption.BUTTONMINGLYPH96;
             switch (graphics.DpiX)
             {
@@ -281,18 +288,18 @@ namespace SkinFramWorkCore
                     break;
             }
 
-            var Image = GetDwmWindowButton(BUTTONMINGLYPH, active ? state : (int)DwmButtonState.Disabled);
-            if (BackgrounImage == null || Image == null)
+            var image = GetDwmWindowButton(BUTTONMINGLYPH, active ? state : (int)DwmButtonState.Disabled);
+            if (backgroundImage == null || image == null)
                 return;
-            graphics.DrawImage(BackgrounImage, rect);
-            var bounRect = new Rectangle((rect.Width - Image.Width) / 2, (rect.Height - Image.Height) / 2, Image.Width, Image.Height);
-            bounRect.Offset(rect.Location);
-            graphics.DrawImage(Image, bounRect);
+            graphics.DrawImage(backgroundImage, rect);
+            var boundRect = new Rectangle((rect.Width - image.Width) / 2, (rect.Height - image.Height) / 2, image.Width, image.Height);
+            boundRect.Offset(rect.Location);
+            graphics.DrawImage(image, boundRect);
         }
 
         internal static void DrawMaximizeButton(Graphics graphics, Rectangle rect, int state, bool active)
         {
-            var BackgrounImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECAPTION : WindowCaption.BUTTONINACTIVECAPTION, state);
+            var backgroundImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECAPTION : WindowCaption.BUTTONINACTIVECAPTION, state);
             int BUTTONMAXGLYPH = WindowCaption.BUTTONMAXGLYPH96;
             switch (graphics.DpiX)
             {
@@ -311,25 +318,25 @@ namespace SkinFramWorkCore
                     break;
             }
 
-            var Image = GetDwmWindowButton(BUTTONMAXGLYPH, active ? state : (int)DwmButtonState.Disabled);
-            if (BackgrounImage == null || Image == null)
+            var image = GetDwmWindowButton(BUTTONMAXGLYPH, active ? state : (int)DwmButtonState.Disabled);
+            if (backgroundImage == null || image == null)
                 return;
-            graphics.DrawImage(BackgrounImage, rect);
-            var bounRect = new Rectangle((rect.Width - Image.Width) / 2, (rect.Height - Image.Height) / 2, Image.Width, Image.Height);
-            bounRect.Offset(rect.Location);
-            graphics.DrawImage(Image, bounRect);
+            graphics.DrawImage(backgroundImage, rect);
+            var boundRect = new Rectangle((rect.Width - image.Width) / 2, (rect.Height - image.Height) / 2, image.Width, image.Height);
+            boundRect.Offset(rect.Location);
+            graphics.DrawImage(image, boundRect);
         }
 
-        internal static void DrawRestorButton(Graphics graphics, Rectangle rect, int state, bool active)
+        internal static void DrawRestoreButton(Graphics graphics, Rectangle rect, int state, bool active)
         {
-            var BackgrounImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECAPTION : WindowCaption.BUTTONINACTIVECAPTION, state);
-            var Image = GetDwmWindowButton(WindowCaption.BUTTONRESTOREGLYPH96, active ? state : (int)DwmButtonState.Disabled);
-            if (BackgrounImage == null || Image == null)
+            var backgroundImage = GetDwmWindowButton(active ? WindowCaption.BUTTONACTIVECAPTION : WindowCaption.BUTTONINACTIVECAPTION, state);
+            var image = GetDwmWindowButton(WindowCaption.BUTTONRESTOREGLYPH96, active ? state : (int)DwmButtonState.Disabled);
+            if (backgroundImage == null || image == null)
                 return;
-            graphics.DrawImage(BackgrounImage, rect);
-            var bounRect = new Rectangle((rect.Width - Image.Width) / 2, (rect.Height - Image.Height) / 2, Image.Width, Image.Height);
-            bounRect.Offset(rect.Location);
-            graphics.DrawImage(Image, bounRect);
+            graphics.DrawImage(backgroundImage, rect);
+            var boundRect = new Rectangle((rect.Width - image.Width) / 2, (rect.Height - image.Height) / 2, image.Width, image.Height);
+            boundRect.Offset(rect.Location);
+            graphics.DrawImage(image, boundRect);
         }
 
         internal static Rectangle RtlRectangle(this Rectangle rectangle, int width)
@@ -385,6 +392,7 @@ namespace SkinFramWorkCore
             }
             return rectangle;
         }
+
         public static void DrawBackgroundImage(this Graphics g, Image backgroundImage, Color backColor, ImageLayout backgroundImageLayout, Rectangle bounds, Rectangle clipRect, Point scrollOffset, RightToLeft rightToLeft)
         {
             if (g == null)
@@ -466,7 +474,7 @@ namespace SkinFramWorkCore
                     DrawMaximizeButton(graphics, rect, (int)state, active);
                     break;
                 case CaptionButton.Restore:
-                    DrawRestorButton(graphics, rect, (int)state, active);
+                    DrawRestoreButton(graphics, rect, (int)state, active);
                     break;
                 case CaptionButton.Help:
                     break;

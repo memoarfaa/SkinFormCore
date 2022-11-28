@@ -127,14 +127,14 @@
             // 
             this.activeBorederColorToolStripMenuItem.Name = "activeBorederColorToolStripMenuItem";
             this.activeBorederColorToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
-            this.activeBorederColorToolStripMenuItem.Text = "Active Boreder Color";
+            this.activeBorederColorToolStripMenuItem.Text = "Active Border Color";
             this.activeBorederColorToolStripMenuItem.Click += new System.EventHandler(this.activeBorederColorToolStripMenuItem_Click);
             // 
             // inactiveBorederColorToolStripMenuItem
             // 
             this.inactiveBorederColorToolStripMenuItem.Name = "inactiveBorederColorToolStripMenuItem";
             this.inactiveBorederColorToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
-            this.inactiveBorederColorToolStripMenuItem.Text = "Inactive Boreder Color";
+            this.inactiveBorederColorToolStripMenuItem.Text = "Inactive Border Color";
             this.inactiveBorederColorToolStripMenuItem.Click += new System.EventHandler(this.inactiveBorederColorToolStripMenuItem_Click);
             // 
             // captionHeightToolStripMenuItem

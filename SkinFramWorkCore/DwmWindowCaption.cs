@@ -4,8 +4,8 @@
     {
         public abstract int BUTTONACTIVECAPTION { get; set; }
         public abstract int BUTTONINACTIVECAPTION { get; set; }
-        public abstract int BUTTONACTIVECLOS { get; set; }
-        public abstract int BUTTONAINCTIVECLOS { get; set; }
+        public abstract int BUTTONACTIVECLOSE { get; set; }
+        public abstract int BUTTONINACTIVECLOSE { get; set; }
         public abstract int BUTTONCLOSEGLYPH96 { get; set; }
         public abstract int BUTTONCLOSEGLYPH120 { get; set; }
         public abstract int BUTTONCLOSEGLYPH144 { get; set; }

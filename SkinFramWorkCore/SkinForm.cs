@@ -23,7 +23,7 @@ namespace SkinFramWorkCore
         #region fields
         private User32.TRACKMOUSEEVENT _trackMouseEvent;
         private bool _trackingMouseEvent;
-        private int _captionHieght;
+        private int _captionHeight;
         private int _borderWidth;
         private Color _activeCaptionColor = SystemColors.ActiveCaption;
         private DwmButtonState _buttonState = DwmButtonState.Normal;
@@ -40,7 +40,7 @@ namespace SkinFramWorkCore
         {
             InitializeComponent();
             ActiveCaptionColor = DefaultCaptionColor;
-            CaptionHieght = DefaultCaptionHieght(this);
+            CaptionHeight = DefaultCaptionHeight(this);
             ControlBoxBounds = DefaultControlBoxBounds;
             BorderWidth = DefaultBorderWidth;
         }
@@ -56,9 +56,9 @@ namespace SkinFramWorkCore
         }
 
         /// <summary>
-        /// return Defualt Caption Height per Dpi
+        /// return Default Caption Height per Dpi
         /// </summary>
-        private static int DefaultCaptionHieght(Form form)
+        private static int DefaultCaptionHeight(Form form)
         {
 
             var isToolWindow = form.FormBorderStyle == FormBorderStyle.SizableToolWindow || form.FormBorderStyle == FormBorderStyle.FixedToolWindow;
@@ -68,10 +68,10 @@ namespace SkinFramWorkCore
         }
 
         /// <summary>
-        /// check if there is Maxmize child
+        /// check if there is a Maximized child
         /// this used to draw internal mdi menu in case MainMenuStrip is not present
         /// </summary>
-        private bool Ismaxchild => ActiveMdiChild != null && ActiveMdiChild.WindowState is FormWindowState.Maximized;
+        private bool IsMaxChild => ActiveMdiChild != null && ActiveMdiChild.WindowState is FormWindowState.Maximized;
 
         /// <summary>
         /// check is <see cref="Form"/> is Active
@@ -97,16 +97,16 @@ namespace SkinFramWorkCore
         {
             get
             {
-                switch (GetMsstylePlatform())
+                switch (MsStylePlatform)
                 {
                     case SkinPlatform.Win8:
                     case SkinPlatform.Win81:
                         return new Rectangle(7, 0, 105, 22);
                     case SkinPlatform.Win10:
                     case SkinPlatform.Win11:
-                        return new Rectangle(7, 0, User32.GetSystemMetrics(User32.SystemMetric.SM_CXMINTRACK) + DefaultBorderWidth, _captionHieght);
+                        return new Rectangle(7, 0, User32.GetSystemMetrics(User32.SystemMetric.SM_CXMINTRACK) + DefaultBorderWidth, _captionHeight);
                     default:
-                        return new Rectangle(7, 0, User32.GetSystemMetrics(User32.SystemMetric.SM_CXMINTRACK) + DefaultBorderWidth, _captionHieght);
+                        return new Rectangle(7, 0, User32.GetSystemMetrics(User32.SystemMetric.SM_CXMINTRACK) + DefaultBorderWidth, _captionHeight);
                 }
 
             }
@@ -134,7 +134,7 @@ namespace SkinFramWorkCore
                     int r = (((RED * ALPHA) + (0xD9 * (255 - ALPHA))) / 255);
                     int g = (byte)(((GREEN * ALPHA) + (0xD9 * (255 - ALPHA))) / 255);
                     int b = (byte)(((BLUE * ALPHA) + (0xD9 * (255 - ALPHA))) / 255);
-                    return IsColoredTitleBar || GetMsstylePlatform() is SkinPlatform.Win8 || GetMsstylePlatform() is SkinPlatform.Win81 ? Color.FromArgb(r, g, b) : Color.White;
+                    return IsColoredTitleBar || MsStylePlatform is SkinPlatform.Win8 || MsStylePlatform is SkinPlatform.Win81 ? Color.FromArgb(r, g, b) : Color.White;
                 }
                 catch (Exception ex)
                 {
@@ -164,16 +164,16 @@ namespace SkinFramWorkCore
 
 
 
-        public int CaptionHieght
+        public int CaptionHeight
         {
             get
             {
-                return _captionHieght;
+                return _captionHeight;
             }
 
             set
             {
-                _captionHieght = value;
+                _captionHeight = value;
 
                 if (DesignMode)
                 {
@@ -200,7 +200,7 @@ namespace SkinFramWorkCore
         }
 
 
-        public Color InActiveCaptionColor { get; set; } = (GetMsstylePlatform() == SkinPlatform.Win10 || GetMsstylePlatform() == SkinPlatform.Win11) ? Color.White : Color.FromArgb(235, 235, 235);
+        public Color InActiveCaptionColor { get; set; } = (MsStylePlatform == SkinPlatform.Win10 || MsStylePlatform == SkinPlatform.Win11) ? Color.White : Color.FromArgb(235, 235, 235);
 
 
         public Color ActiveCaptionColor
@@ -389,15 +389,15 @@ namespace SkinFramWorkCore
 
         }
 
-        private void PaintTransparentBackground(PaintEventArgs e, Rectangle rectangle, Region transparentRegion = null)
+        private void PaintTransparentBackground(PaintEventArgs e, Rectangle rectangle, Region? transparentRegion = null)
         {
             Graphics graphics = e.Graphics;
-            Control parentInternal = Parent;
+            Control? parentInternal = Parent;
             if (parentInternal != null)
             {
                 if (Application.RenderWithVisualStyles)
                 {
-                    GraphicsState gstate = null;
+                    GraphicsState? gstate = null;
                     if (transparentRegion != null)
                         gstate = graphics.Save();
                     try
@@ -504,7 +504,7 @@ namespace SkinFramWorkCore
             Rectangle maxBtnRect = new Rectangle(width - btnWidth * 2, 1, btnWidth, btnbottom);
             Rectangle minBtnRect = new Rectangle(width - ControlBoxBounds.Width, 1, btnWidth, btnbottom);
             bool isMinimizedChild = IsMdiChild && WindowState == FormWindowState.Minimized;
-            switch (GetMsstylePlatform())
+            switch (MsStylePlatform)
             {
                 case SkinPlatform.Vista:
                 case SkinPlatform.Win7:
@@ -574,7 +574,7 @@ namespace SkinFramWorkCore
         }
 
         /// <summary>
-        /// Handel <see cref="WindowsMessages.NCCALCSIZE"/> <see cref="Message"/>
+        /// Handle <see cref="WindowsMessages.NCCALCSIZE"/> <see cref="Message"/>
         /// </summary>
         /// <param name="m"></param>
         private void OnWmNcCalcSize(ref Message m)
@@ -586,9 +586,9 @@ namespace SkinFramWorkCore
             }
 
 
-            int mdiMenuHeghit = Ismaxchild && MainMenuStrip is null ? User32.GetSystemMetrics(User32.SystemMetric.SM_CYMENUSIZE) : 0;
-            int defaultCaptionHeight = Ismaxchild && MainMenuStrip is null ? DefaultCaptionHieght(this) : _captionHieght;
-            int captionHeight = defaultCaptionHeight + mdiMenuHeghit;
+            int mdiMenuHeight = IsMaxChild && MainMenuStrip is null ? User32.GetSystemMetrics(User32.SystemMetric.SM_CYMENUSIZE) : 0;
+            int defaultCaptionHeight = IsMaxChild && MainMenuStrip is null ? DefaultCaptionHeight(this) : _captionHeight;
+            int captionHeight = defaultCaptionHeight + mdiMenuHeight;
             User32.NCCALCSIZE_PARAMS nccParama = Marshal.PtrToStructure<User32.NCCALCSIZE_PARAMS>(m.LParam);
             nccParama.rgrc0.left += BorderWidth;
             nccParama.rgrc0.top += captionHeight;
@@ -597,9 +597,9 @@ namespace SkinFramWorkCore
             Marshal.StructureToPtr(nccParama, m.LParam, true);
             if (AllowNcTransparency && !IsMdiChild)
             {
-                UxTheme.MARGINS winMargins = new UxTheme.MARGINS { cxLeftWidth = BorderWidth, cxRightWidth = BorderWidth, cyTopHeight = CaptionHieght, cyBottomHeight = BorderWidth };
+                UxTheme.MARGINS winMargins = new UxTheme.MARGINS { cxLeftWidth = BorderWidth, cxRightWidth = BorderWidth, cyTopHeight = CaptionHeight, cyBottomHeight = BorderWidth };
                 UxTheme.MARGINS win11Margins = new UxTheme.MARGINS { cxLeftWidth = 1, cxRightWidth = 1, cyTopHeight = 1, cyBottomHeight = 1 };
-                UxTheme.MARGINS margins = GetMsstylePlatform() == SkinPlatform.Win11 ? win11Margins : winMargins;
+                UxTheme.MARGINS margins = MsStylePlatform == SkinPlatform.Win11 ? win11Margins : winMargins;
                 Dwmapi.DwmExtendFrameIntoClientArea(this.Handle, ref margins);
             }
 
@@ -607,7 +607,7 @@ namespace SkinFramWorkCore
         }
 
         /// <summary>
-        /// Handel <see cref="WindowsMessages.NCPAINT"/> <see cref="Message"/>
+        /// Handle <see cref="WindowsMessages.NCPAINT"/> <see cref="Message"/>
         /// </summary>
         /// <param name="m"></param>
         private void OnWmNcPaint(ref Message m)
@@ -641,8 +641,8 @@ namespace SkinFramWorkCore
                 RECT currentClient = new RECT();
                 User32.GetClientRect(Handle, ref currentClient);
 
-                int captionHieght = Ismaxchild && MainMenuStrip is null ? DefaultCaptionHieght(this) + User32.GetSystemMetrics(User32.SystemMetric.SM_CYMENUSIZE) : _captionHieght;
-                User32.OffsetRect(ref currentClient, BorderWidth, captionHieght);
+                int captionHeight = IsMaxChild && MainMenuStrip is null ? DefaultCaptionHeight(this) + User32.GetSystemMetrics(User32.SystemMetric.SM_CYMENUSIZE) : _captionHeight;
+                User32.OffsetRect(ref currentClient, BorderWidth, captionHeight);
 
                 // if minimized child there is no client Rectangle
                 if (!(IsMdiChild && WindowState == FormWindowState.Minimized))
@@ -673,22 +673,22 @@ namespace SkinFramWorkCore
                     nCGraphics.Clear(ncColor);
 
                     // The internal Mdi menu must be redrawn if the MainMenuStrip is not present because it is in the Nonclient area of the window
-                    if (MainMenuStrip is null && Ismaxchild)
+                    if (MainMenuStrip is null && IsMaxChild)
                     {
-                        nCGraphics.FillRectangle(new SolidBrush(Color.White), new Rectangle(BorderWidth, _captionHieght, Width - BorderWidth * 2, captionHieght - _captionHieght));
+                        nCGraphics.FillRectangle(new SolidBrush(Color.White), new Rectangle(BorderWidth, _captionHeight, Width - BorderWidth * 2, captionHeight - _captionHeight));
 
                         if (ActiveMdiChild?.Icon is object)
                         {
-                            nCGraphics.DrawIcon(new Icon(ActiveMdiChild.Icon, SystemInformation.SmallIconSize), BorderWidth + 2, DefaultCaptionHieght(this));
+                            nCGraphics.DrawIcon(new Icon(ActiveMdiChild.Icon, SystemInformation.SmallIconSize), BorderWidth + 2, DefaultCaptionHeight(this));
                         }
 
                         int mdiBtnWidth = User32.GetSystemMetrics(User32.SystemMetric.SM_CXMENUSIZE);
-                        VisualStyleRenderer mdiCloseButtonReneder = new VisualStyleRenderer(VisualStyleElement.Window.MdiCloseButton.Normal);
-                        VisualStyleRenderer mdiRestoreButtonReneder = new VisualStyleRenderer(VisualStyleElement.Window.MdiRestoreButton.Normal);
-                        VisualStyleRenderer mdiMinButtonReneder = new VisualStyleRenderer(VisualStyleElement.Window.MdiMinButton.Normal);
-                        mdiCloseButtonReneder.DrawBackground(nCGraphics, new Rectangle(Width - DefaultBorderWidth - mdiBtnWidth, DefaultCaptionHieght(this), mdiBtnWidth, mdiBtnWidth));
-                        mdiRestoreButtonReneder.DrawBackground(nCGraphics, new Rectangle(Width - DefaultBorderWidth - (mdiBtnWidth * 2) + 1, DefaultCaptionHieght(this), mdiBtnWidth, mdiBtnWidth));
-                        mdiMinButtonReneder.DrawBackground(nCGraphics, new Rectangle(Width - DefaultBorderWidth - (mdiBtnWidth * 3) + 1, DefaultCaptionHieght(this), mdiBtnWidth, mdiBtnWidth));
+                        VisualStyleRenderer mdiCloseButtonRenderer = new VisualStyleRenderer(VisualStyleElement.Window.MdiCloseButton.Normal);
+                        VisualStyleRenderer mdiRestoreButtonRenderer = new VisualStyleRenderer(VisualStyleElement.Window.MdiRestoreButton.Normal);
+                        VisualStyleRenderer mdiMinButtonRenderer = new VisualStyleRenderer(VisualStyleElement.Window.MdiMinButton.Normal);
+                        mdiCloseButtonRenderer.DrawBackground(nCGraphics, new Rectangle(Width - DefaultBorderWidth - mdiBtnWidth, DefaultCaptionHeight(this), mdiBtnWidth, mdiBtnWidth));
+                        mdiRestoreButtonRenderer.DrawBackground(nCGraphics, new Rectangle(Width - DefaultBorderWidth - (mdiBtnWidth * 2) + 1, DefaultCaptionHeight(this), mdiBtnWidth, mdiBtnWidth));
+                        mdiMinButtonRenderer.DrawBackground(nCGraphics, new Rectangle(Width - DefaultBorderWidth - (mdiBtnWidth * 3) + 1, DefaultCaptionHeight(this), mdiBtnWidth, mdiBtnWidth));
                     }
 
                     // Draw ControlBox
@@ -731,7 +731,7 @@ namespace SkinFramWorkCore
         }
 
         /// <summary>
-        /// Handel <see cref="WindowsMessages.NCACTIVATE"/> <see cref="Message"/>
+        /// Handle <see cref="WindowsMessages.NCACTIVATE"/> <see cref="Message"/>
         /// </summary>
         /// <param name="m"></param>
         private void OnWmNcActive(ref Message m)
@@ -742,7 +742,7 @@ namespace SkinFramWorkCore
         }
 
         /// <summary>
-        /// Handel <see cref="WindowsMessages.NCCREATE"/> <see cref="Message"/>
+        /// Handle <see cref="WindowsMessages.NCCREATE"/> <see cref="Message"/>
         /// </summary>
         /// <param name="m"></param>
         private void OnWmNcCreate(ref Message m)
@@ -763,7 +763,7 @@ namespace SkinFramWorkCore
         }
 
         /// <summary>
-        /// Handel <see cref="WindowsMessages.NCMOUSEMOVE"/> <see cref="Message"/>
+        /// Handle <see cref="WindowsMessages.NCMOUSEMOVE"/> <see cref="Message"/>
         /// </summary>
         /// <param name="m"></param>
         private void OnWmNcMouseMove(ref Message m)
@@ -805,7 +805,7 @@ namespace SkinFramWorkCore
         }
 
         /// <summary>
-        /// Handel <see cref="WindowsMessages.NCMOUSELEAVE"/> <see cref="Message"/>
+        /// Handle <see cref="WindowsMessages.NCMOUSELEAVE"/> <see cref="Message"/>
         /// </summary>
         /// <param name="m"></param>
         private void OnWmNcMouseLeave(ref Message m)
@@ -818,7 +818,7 @@ namespace SkinFramWorkCore
         }
 
         /// <summary>
-        /// Handel <see cref="WindowsMessages.NCLBUTTONDOWN"/> <see cref="Message"/>
+        /// Handle <see cref="WindowsMessages.NCLBUTTONDOWN"/> <see cref="Message"/>
         /// </summary>
         /// <param name="m"></param>
         private void OnWmNclButtonDown(ref Message m)
@@ -850,7 +850,7 @@ namespace SkinFramWorkCore
         }
 
         /// <summary>
-        /// Handel <see cref="WindowsMessages.NCLBUTTONUP"/> <see cref="Message"/>
+        /// Handle <see cref="WindowsMessages.NCLBUTTONUP"/> <see cref="Message"/>
         /// </summary>
         /// <param name="m"></param>
         private void OnWmNclButtonUp(ref Message m)
@@ -878,7 +878,7 @@ namespace SkinFramWorkCore
         }
 
         /// <summary>
-        /// Handel <see cref="WindowsMessages.NCHITTEST"/> <see cref="Message"/>
+        /// Handle <see cref="WindowsMessages.NCHITTEST"/> <see cref="Message"/>
         /// </summary>
         /// <param name="m"></param>
         private void OnWmNcHitTest(ref Message m)
@@ -897,7 +897,7 @@ namespace SkinFramWorkCore
             Rectangle restoreRect = new Rectangle(width - btnWidth * 2, 1, btnWidth, btnbottom);
             Rectangle minRect = new Rectangle(width - ControlBoxBounds.Width, 1, btnWidth * 2 + 1, btnbottom);
 
-            switch (GetMsstylePlatform())
+            switch (MsStylePlatform)
             {
                 case SkinPlatform.Vista:
                 case SkinPlatform.Win7:
@@ -957,8 +957,8 @@ namespace SkinFramWorkCore
         }
 
         /// <summary>
-        /// Set <see cref="Form"/> round <see cref="Region"/> in case <see cref="AllowNcTransparency"/> is false and Round corners greater than 0.
-        /// this kind of <see cref="Region"/> is not recomended.
+        /// Set <see cref="Form"/> round <see cref="Region"/> in case <see cref="AllowNcTransparency"/> is false and round corners greater than 0.
+        /// this kind of <see cref="Region"/> is not recommended.
         /// </summary>
         private void SetRoundRegion()
         {
