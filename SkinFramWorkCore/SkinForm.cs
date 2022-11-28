@@ -13,6 +13,8 @@ using System.Linq;
 using System.Windows.Forms;
 using System;
 using System.Drawing.Drawing2D;
+using System.ComponentModel;
+
 namespace SkinFramWorkCore
 {
     public partial class SkinForm : Form
@@ -170,6 +172,10 @@ namespace SkinFramWorkCore
                 }
             }
         }
+        /// <summary>
+        ///  Specifies the border styles for a form.
+        ///  used to prevent default black Dwm Window caption theme from appear in Design Mode
+        /// </summary>
         public new FormBorderStyle FormBorderStyle
         {
             get
@@ -188,8 +194,8 @@ namespace SkinFramWorkCore
             }
         }
 
-
-
+        [Description("Caption hight of nonclient area.")]
+        [Category("Theme")]
         public int CaptionHieght
         {
             get
@@ -208,7 +214,8 @@ namespace SkinFramWorkCore
             }
         }
 
-
+        [Description("Border Width around nonclient area.")]
+        [Category("Theme")]
         public int BorderWidth
         {
             get
@@ -225,7 +232,8 @@ namespace SkinFramWorkCore
             }
         }
 
-
+        [Category("Theme")]
+        [Description("Set nonclient area inactive caption color.")]
         public Color InActiveCaptionColor
         {
             get
@@ -237,6 +245,8 @@ namespace SkinFramWorkCore
             set { _inActiveCaptionColor = value; }
         }
 
+        [Category("Theme")]
+        [Description("Set nonclient area active caption color.")]
         public Color ActiveCaptionColor
         {
             get
@@ -253,7 +263,8 @@ namespace SkinFramWorkCore
             }
         }
 
-
+        [Description("Opacity of nonclient area Color.")]
+        [Category("Theme")]
         public int NcOpacity
         {
             get
@@ -270,10 +281,12 @@ namespace SkinFramWorkCore
             }
         }
 
-
+        [Description("Allow nonclient area transparency and composition.")]
+        [Category("Theme")]
         public bool AllowNcTransparency { get; set; } = true;
 
-
+        [Category("Theme")]
+        [Description("Set nonclient area round corners.")]
         public int BorderRadius
         {
             get
@@ -342,7 +355,7 @@ namespace SkinFramWorkCore
                     base.WndProc(ref m);
                     OnWmNcPaint(ref m);
                     break;
-                //occurred if no transparency
+                //occurred if no transparency and round Corners
                 case WindowsMessages.NCUAHDRAWCAPTION:
                 case WindowsMessages.NCUAHDRAWFRAME:
                     OnWmNcPaint(ref m);
@@ -429,15 +442,15 @@ namespace SkinFramWorkCore
 
         }
 
-        private void PaintTransparentBackground(PaintEventArgs e, Rectangle rectangle, Region transparentRegion = null)
+        private void PaintTransparentBackground(PaintEventArgs e, Rectangle rectangle, Region? transparentRegion = null)
         {
             Graphics graphics = e.Graphics;
-            Control parentInternal = Parent;
+            Control? parentInternal = Parent;
             if (parentInternal != null)
             {
                 if (Application.RenderWithVisualStyles)
                 {
-                    GraphicsState gstate = null;
+                    GraphicsState? gstate = null;
                     if (transparentRegion != null)
                         gstate = graphics.Save();
                     try
@@ -456,27 +469,23 @@ namespace SkinFramWorkCore
                 {
                     Rectangle rectangle1 = new Rectangle(-Left, -Top, parentInternal.Width, parentInternal.Height);
                     Rectangle clipRect = new Rectangle(rectangle.Left + Left, rectangle.Top + Top, rectangle.Width, rectangle.Height);
-                    using (Graphics windowsGraphics = graphics)
+                    using Graphics? windowsGraphics = graphics;
+                    windowsGraphics.TranslateTransform(-Left, -Top);
+                    using PaintEventArgs? e1 = new PaintEventArgs(windowsGraphics, clipRect);
+                    if (transparentRegion != null)
                     {
-                        windowsGraphics.TranslateTransform(-Left, -Top);
-                        using (PaintEventArgs e1 = new PaintEventArgs(windowsGraphics, clipRect))
-                        {
-                            if (transparentRegion != null)
-                            {
-                                e1.Graphics.Clip = transparentRegion;
-                                e1.Graphics.TranslateClip(-rectangle1.X, -rectangle1.Y);
-                            }
-                            try
-                            {
-                                InvokePaintBackground(parentInternal, e1);
-                                InvokePaint(parentInternal, e1);
-                            }
-                            finally
-                            {
-                                if (transparentRegion != null)
-                                    e1.Graphics.TranslateClip(rectangle1.X, rectangle1.Y);
-                            }
-                        }
+                        e1.Graphics.Clip = transparentRegion;
+                        e1.Graphics.TranslateClip(-rectangle1.X, -rectangle1.Y);
+                    }
+                    try
+                    {
+                        InvokePaintBackground(parentInternal, e1);
+                        InvokePaint(parentInternal, e1);
+                    }
+                    finally
+                    {
+                        if (transparentRegion != null)
+                            e1.Graphics.TranslateClip(rectangle1.X, rectangle1.Y);
                     }
                 }
             }
@@ -664,10 +673,10 @@ namespace SkinFramWorkCore
                 return;
             }
 
-
+            //mdi menu heghit
             int mdiMenuHeghit = Ismaxchild && MainMenuStrip is null ? User32.GetSystemMetrics(User32.SystemMetric.SM_CYMENUSIZE) : 0;
             int defaultCaptionHeight = Ismaxchild && MainMenuStrip is null ? DefaultCaptionHieght(this) : _captionHieght;
-
+            //true caption height
             int captionHeight = defaultCaptionHeight + mdiMenuHeghit;
             User32.NCCALCSIZE_PARAMS nccParama = Marshal.PtrToStructure<User32.NCCALCSIZE_PARAMS>(m.LParam);
             nccParama.rgrc0.left += BorderWidth;
