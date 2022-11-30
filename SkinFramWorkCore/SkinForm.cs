@@ -14,7 +14,6 @@ using System.Windows.Forms;
 using System;
 using System.Drawing.Drawing2D;
 using System.ComponentModel;
-
 namespace SkinFramWorkCore
 {
     public partial class SkinForm : Form
@@ -47,6 +46,21 @@ namespace SkinFramWorkCore
         #endregion
 
         #region Properties
+        private bool IsOnScreen(Form form)
+        {
+            Screen[] screens = Screen.AllScreens;
+            foreach (Screen screen in screens)
+            {
+                Rectangle formRectangle = new Rectangle(form.Left, form.Top, form.Width, form.Height);
+
+                if (screen.WorkingArea.Contains(formRectangle))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
         private static int DefaultBorderWidth
         {
             get
@@ -121,7 +135,7 @@ namespace SkinFramWorkCore
             {
                 int? ColorizationColor;
                 int? ColorizationColorBalance;
-                int? Darkmodeval ;
+                int? Darkmodeval;
                 try
                 {
                     ColorizationColor = (int?)Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\DWM", "ColorizationColor", 0);
@@ -136,7 +150,7 @@ namespace SkinFramWorkCore
                     int r = (((RED * ALPHA) + (0xD9 * (255 - ALPHA))) / 255);
                     int g = (byte)(((GREEN * ALPHA) + (0xD9 * (255 - ALPHA))) / 255);
                     int b = (byte)(((BLUE * ALPHA) + (0xD9 * (255 - ALPHA))) / 255);
-                    if(Darkmodeval.HasValue  && Darkmodeval.Value == 0)
+                    if (Darkmodeval.HasValue && Darkmodeval.Value == 0)
                     {
                         return Color.FromArgb(38, 38, 38);
                     }
@@ -153,13 +167,13 @@ namespace SkinFramWorkCore
         {
             get
             {
-                
+
                 int? Darkmodeval;
                 try
                 {
-                 
+
                     Darkmodeval = (int?)Registry.GetValue(@"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "AppsUseLightTheme", 1);
-                    
+
                     if (Darkmodeval.HasValue && Darkmodeval.Value == 0)
                     {
                         return Color.FromArgb(38, 38, 38);
@@ -252,7 +266,7 @@ namespace SkinFramWorkCore
         {
             get
             {
-                return _activeCaptionColor ;
+                return _activeCaptionColor;
             }
             set
             {
@@ -373,7 +387,7 @@ namespace SkinFramWorkCore
 
             if (mdiClient != null)
             {
-                new MdiNativeWindow(mdiClient);
+               new MdiNativeWindow(mdiClient);
             }
         }
         protected override CreateParams CreateParams
@@ -390,19 +404,9 @@ namespace SkinFramWorkCore
         protected override void OnRightToLeftLayoutChanged(EventArgs e)
         {
             base.OnRightToLeftLayoutChanged(e);
-            if (RightToLeft == RightToLeft.Yes && RightToLeftLayout)
+            if (RightToLeft == RightToLeft.Yes && RightToLeftLayout && !IsMdiContainer)
             {
-                var mdiClient = Controls.Cast<Control>().OfType<MdiClient>().FirstOrDefault();
-
-                if (mdiClient != null)
-                {
-                    mdiClient.Paint += Rtl_Paint;
-                }
-
-                else
-                {
-                    Paint += Rtl_Paint;
-                }
+                Paint += Rtl_Paint;
             }
         }
 
@@ -411,38 +415,22 @@ namespace SkinFramWorkCore
         #region Methods
         private void Rtl_Paint(object? sender, PaintEventArgs e)
         {
-            e.Graphics.Clear( IsMdiContainer ? SystemColors.AppWorkspace: BackColor);
-            e.Graphics.Transform = new Matrix(-1, 0, 0, 1, Width - BorderWidth * 2 + 1, 0);
-            var clipRectangle = e.ClipRectangle.RtlRectangle(Width - BorderWidth * 2 + 1);
-            if ((HScroll || VScroll) && BackgroundImage != null &&
-                (BackgroundImageLayout == ImageLayout.Zoom || BackgroundImageLayout == ImageLayout.Stretch ||
-                 BackgroundImageLayout == ImageLayout.Center))
-            {
-                if (IsImageTransparent(BackgroundImage))
-                    PaintTransparentBackground(e, clipRectangle);
-                e.Graphics.DrawBackgroundImage(BackgroundImage, BackColor, BackgroundImageLayout, clipRectangle,
-                    clipRectangle, clipRectangle.Location, RightToLeft);
-            }
-            else
-            {
+            e.Graphics.Clear(IsMdiContainer ? SystemColors.AppWorkspace : BackColor);
+           e.Graphics.Transform = new Matrix(-1, 0, 0, 1, Width - BorderWidth * 2 + 1, 0);
 
-                PaintBackground(e, clipRectangle, BackColor);
+           if(BackgroundImage!=null)
+            {
+                e.Graphics.DrawBackgroundImage(BackgroundImage, BackColor, BackgroundImageLayout, ClientRectangle,
+               ClientRectangle, Point.Empty, RightToLeft);
+            }
+            if (!IsOnScreen(this) && !IsMdiChild && !IsMdiContainer)
+            {
+                Invalidate();
             }
         }
-        private void PaintBackground(PaintEventArgs e, Rectangle rectangle, Color backColor)
-        {
-            if (BackColor == Color.Transparent)
-                PaintTransparentBackground(e, rectangle);
-            if (BackgroundImage != null && !SystemInformation.HighContrast)
-            {
-                if (BackgroundImageLayout == ImageLayout.Tile && IsImageTransparent(BackgroundImage))
-                    PaintTransparentBackground(e, rectangle);
-                e.Graphics.DrawBackgroundImage(BackgroundImage, backColor, BackgroundImageLayout, ClientRectangle,
-                    ClientRectangle, Point.Empty, RightToLeft);
-            }
 
-        }
 
+        
         private void PaintTransparentBackground(PaintEventArgs e, Rectangle rectangle, Region? transparentRegion = null)
         {
             Graphics graphics = e.Graphics;
@@ -719,25 +707,49 @@ namespace SkinFramWorkCore
             {
                 if (!(!AllowNcTransparency && BorderRadius > 0))
                 {
-                    User32.SetWindowRgn(Handle, default, false);
+                    if (User32.SetWindowRgn(Handle, default, false) == (int)HRESULT.S_OK)
+                    {
+                       int error = Marshal.GetLastWin32Error();
+
+                        throw new ArgumentException($"Error Function : {nameof(User32.SetWindowRgn)} \r\n return rerror Code : " + error);
+                    }
                 }
             }
-
             Gdi32.HDC hdc = User32.GetWindowDC(Handle);
             if (!hdc.IsNull)
             {
                 RECT currentBounds = new RECT();
                 User32.GetWindowRect(m.HWnd, ref currentBounds);
-                User32.OffsetRect(ref currentBounds, -currentBounds.left, -currentBounds.top);
+                
+                if (User32.OffsetRect(ref currentBounds, -currentBounds.left, -currentBounds.top) == (int)HRESULT.S_OK)
+                {
+
+                    int error = Marshal.GetLastWin32Error();
+
+                    throw new ArgumentException($"Error Function : {nameof(User32.OffsetRect)} \r\n return rerror Code : " + error);
+
+                }
+
                 RECT currentClient = new RECT();
                 User32.GetClientRect(Handle, ref currentClient);
 
                 int captionHeight = IsMaxChild && MainMenuStrip is null ? DefaultCaptionHeight(this) + User32.GetSystemMetrics(User32.SystemMetric.SM_CYMENUSIZE) : _captionHeight;
-                User32.OffsetRect(ref currentClient, BorderWidth, captionHeight);
+                if(User32.OffsetRect(ref currentClient, BorderWidth, captionHeight) == (int)HRESULT.S_OK)
+                {
+                    int error = Marshal.GetLastWin32Error();
+
+                    throw new ArgumentException($"Error Function : {nameof(User32.OffsetRect)} \r\n return rerror Code : " + error);
+                }
+
 
                 // if minimized child there is no client Rectangle
                 if (!(IsMdiChild && WindowState == FormWindowState.Minimized))
-                    Gdi32.ExcludeClipRect(hdc, currentClient.left, currentClient.top, currentClient.right, currentClient.bottom);
+                    if (Gdi32.ExcludeClipRect(hdc, currentClient.left, currentClient.top, currentClient.right, currentClient.bottom) == 0)
+                    {
+                        int error = Marshal.GetLastWin32Error();
+
+                        throw new ArgumentException($"Error Function : {nameof(Gdi32.ExcludeClipRect)} \r\n return rerror Code : " + error);
+                    }
 
                 UxTheme.BP_PAINTPARAMS paintParams = new UxTheme.BP_PAINTPARAMS(UxTheme.BPPF.NonClient);
 
@@ -756,67 +768,74 @@ namespace SkinFramWorkCore
                 Color inActiveColor = InActiveCaptionColor != Color.Empty ? InActiveCaptionColor : DefaultInActiveCaptionColor;
                 Color color = IsActive ? activeColor : inActiveColor;
                 Color ncColor = Color.FromArgb(NcOpacity, color);
-                using (Graphics nCGraphics = Graphics.FromHdcInternal(memdc.Handle))
+                if (!memdc.IsNull)
                 {
-                    if (BorderRadius > 0)
+                    using (Graphics nCGraphics = Graphics.FromHdcInternal(memdc.Handle))
                     {
-                        nCGraphics.IntersectClip(new Region(RoundedRect(currentBounds, BorderRadius)));
-                    }
-
-                    nCGraphics.Clear(ncColor);
-
-                    // The internal Mdi menu must be redrawn if the MainMenuStrip is not present because it is in the Nonclient area of the window
-                    if (MainMenuStrip is null && IsMaxChild)
-                    {
-                        nCGraphics.FillRectangle(new SolidBrush(Color.White), new Rectangle(BorderWidth, _captionHeight, Width - BorderWidth * 2, captionHeight - _captionHeight));
-
-                        if (ActiveMdiChild?.Icon is object)
+                        if (BorderRadius > 0)
                         {
-                            nCGraphics.DrawIcon(new Icon(ActiveMdiChild.Icon, SystemInformation.SmallIconSize), BorderWidth + 2, DefaultCaptionHeight(this));
+                            if(RightToLeftLayout && RightToLeft == RightToLeft.Yes)
+                            {
+                                User32.OffsetRect(ref currentBounds, -currentBounds.left - 1, -currentBounds.top);
+                            }
+                            nCGraphics.IntersectClip(new Region(RoundedRect(currentBounds, BorderRadius)));
                         }
 
-                        int mdiBtnWidth = User32.GetSystemMetrics(User32.SystemMetric.SM_CXMENUSIZE);
-                        VisualStyleRenderer mdiCloseButtonRenderer = new VisualStyleRenderer(VisualStyleElement.Window.MdiCloseButton.Normal);
-                        VisualStyleRenderer mdiRestoreButtonRenderer = new VisualStyleRenderer(VisualStyleElement.Window.MdiRestoreButton.Normal);
-                        VisualStyleRenderer mdiMinButtonRenderer = new VisualStyleRenderer(VisualStyleElement.Window.MdiMinButton.Normal);
-                        mdiCloseButtonRenderer.DrawBackground(nCGraphics, new Rectangle(Width - DefaultBorderWidth - mdiBtnWidth, DefaultCaptionHeight(this), mdiBtnWidth, mdiBtnWidth));
-                        mdiRestoreButtonRenderer.DrawBackground(nCGraphics, new Rectangle(Width - DefaultBorderWidth - (mdiBtnWidth * 2) + 1, DefaultCaptionHeight(this), mdiBtnWidth, mdiBtnWidth));
-                        mdiMinButtonRenderer.DrawBackground(nCGraphics, new Rectangle(Width - DefaultBorderWidth - (mdiBtnWidth * 3) + 1, DefaultCaptionHeight(this), mdiBtnWidth, mdiBtnWidth));
+                        nCGraphics.Clear(ncColor);
+
+                        // The internal Mdi menu must be redrawn if the MainMenuStrip is not present because it is in the Nonclient area of the window
+                        if (MainMenuStrip is null && IsMaxChild)
+                        {
+                            nCGraphics.FillRectangle(new SolidBrush(Color.White), new Rectangle(BorderWidth, _captionHeight, Width - BorderWidth * 2, captionHeight - _captionHeight));
+
+                            if (ActiveMdiChild?.Icon != null)
+                            {
+                                nCGraphics.DrawIcon(new Icon(ActiveMdiChild.Icon, SystemInformation.SmallIconSize), BorderWidth + 2, DefaultCaptionHeight(this));
+                            }
+
+                            int mdiBtnWidth = User32.GetSystemMetrics(User32.SystemMetric.SM_CXMENUSIZE);
+                            VisualStyleRenderer mdiCloseButtonRenderer = new VisualStyleRenderer(VisualStyleElement.Window.MdiCloseButton.Normal);
+                            VisualStyleRenderer mdiRestoreButtonRenderer = new VisualStyleRenderer(VisualStyleElement.Window.MdiRestoreButton.Normal);
+                            VisualStyleRenderer mdiMinButtonRenderer = new VisualStyleRenderer(VisualStyleElement.Window.MdiMinButton.Normal);
+                            mdiCloseButtonRenderer.DrawBackground(nCGraphics, new Rectangle(Width - DefaultBorderWidth - mdiBtnWidth, DefaultCaptionHeight(this), mdiBtnWidth, mdiBtnWidth));
+                            mdiRestoreButtonRenderer.DrawBackground(nCGraphics, new Rectangle(Width - DefaultBorderWidth - (mdiBtnWidth * 2) + 1, DefaultCaptionHeight(this), mdiBtnWidth, mdiBtnWidth));
+                            mdiMinButtonRenderer.DrawBackground(nCGraphics, new Rectangle(Width - DefaultBorderWidth - (mdiBtnWidth * 3) + 1, DefaultCaptionHeight(this), mdiBtnWidth, mdiBtnWidth));
+                        }
+
+                        // Draw ControlBox
+                        if (ControlBox)
+                        {
+                            DrawCaptionButtons(Width, nCGraphics);
+                        }
+
+                        // Draw Icon
+                        if (ShowIcon && Icon is object && FormBorderStyle != FormBorderStyle.FixedToolWindow && FormBorderStyle != FormBorderStyle.SizableToolWindow && FormBorderStyle != FormBorderStyle.FixedDialog)
+                        {
+                            nCGraphics.DrawIcon(new Icon(Icon, SystemInformation.SmallIconSize), 9, 7);
+                        }
                     }
 
-                    // Draw ControlBox
-                    if (ControlBox)
+                    //Draw Text
+                    //Draw Text With  nCGraphics.DrawString has very bad look in Transparency Form so we draw it with DrawThemeTextEx
+                    if (!string.IsNullOrEmpty(Text))
                     {
-                        DrawCaptionButtons(Width, nCGraphics);
+                        VisualStyleRenderer textRenderer = new VisualStyleRenderer(VisualStyleElement.Window.Caption.Active);
+                        UxTheme.DTTOPTS dttOpts = default;
+                        dttOpts.dwSize = Marshal.SizeOf(typeof(UxTheme.DTTOPTS));
+                        dttOpts.dwFlags = DTT_COMPOSITED | DTT_GLOWSIZE | DTT_TEXTCOLOR;
+                        dttOpts.crText = ColorTranslator.ToWin32(ncColor.ContrastColor());
+                        dttOpts.iGlowSize = 8;
+                        Font font = SystemFonts.CaptionFont ?? Font;
+                        Gdi32.HGDIOBJ fontHandle = (Gdi32.HGDIOBJ)font.ToHfont();
+                        Gdi32.SelectObject(memdc, fontHandle);
+                        RECT textBounds = new RECT(30, 6, Width - ControlBoxBounds.Width, 30);
+                        if (IsMdiChild && WindowState == FormWindowState.Minimized)
+                            textBounds = new RECT(30, 6, Width - 100, 30);
+                        UxTheme.DrawThemeTextEx(textRenderer.Handle, memdc, 0, 0, Text, -1, (int)TextFormatFlags.WordEllipsis, ref textBounds, ref dttOpts);
+                        Gdi32.DeleteObject(fontHandle);
                     }
 
-                    // Draw Icon
-                    if (ShowIcon && Icon is object && FormBorderStyle != FormBorderStyle.FixedToolWindow && FormBorderStyle != FormBorderStyle.SizableToolWindow && FormBorderStyle != FormBorderStyle.FixedDialog)
-                    {
-                        nCGraphics.DrawIcon(new Icon(Icon, SystemInformation.SmallIconSize), 9, 7);
-                    }
                 }
-
-                //Draw Text
-                //Draw Text With  nCGraphics.DrawString has very bad look in Transparency Form so we draw it with DrawThemeTextEx
-                if (!string.IsNullOrEmpty(Text))
-                {
-                    VisualStyleRenderer textRenderer = new VisualStyleRenderer(VisualStyleElement.Window.Caption.Active);
-                    UxTheme.DTTOPTS dttOpts = default;
-                    dttOpts.dwSize = Marshal.SizeOf(typeof(UxTheme.DTTOPTS));
-                    dttOpts.dwFlags = DTT_COMPOSITED | DTT_GLOWSIZE | DTT_TEXTCOLOR;
-                    dttOpts.crText = ColorTranslator.ToWin32(ncColor.ContrastColor());
-                    dttOpts.iGlowSize = 8;
-                    Font font = SystemFonts.CaptionFont ?? Font;
-                    Gdi32.HGDIOBJ fontHandle = (Gdi32.HGDIOBJ)font.ToHfont();
-                    Gdi32.SelectObject(memdc, fontHandle);
-                    RECT textBounds = new RECT(30, 6, Width - ControlBoxBounds.Width, 30);
-                    if (IsMdiChild && WindowState == FormWindowState.Minimized)
-                        textBounds = new RECT(30, 6, Width - 120, 30);
-                    UxTheme.DrawThemeTextEx(textRenderer.Handle, memdc, 0, 0, Text, -1, (int)TextFormatFlags.WordEllipsis, ref textBounds, ref dttOpts);
-                    Gdi32.DeleteObject(fontHandle);
-                }
-
                 UxTheme.EndBufferedPaint(bufferedPaint, true);
             }
 

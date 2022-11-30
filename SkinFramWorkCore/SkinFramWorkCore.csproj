@@ -24,6 +24,7 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp3.1|AnyCPU'">
 		<WarningLevel>3</WarningLevel>
 	</PropertyGroup>
+	
 	<ItemGroup>
 		<None Include="..\LICENSE.txt">
 			<Pack>True</Pack>

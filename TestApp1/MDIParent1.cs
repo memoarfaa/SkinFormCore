@@ -142,9 +142,6 @@ namespace TestApp1
             LayoutMdi(MdiLayout.ArrangeIcons);
         }
 
-       
-
-    
         private void rightToLeftToolStripMenuItem_Click(object sender, EventArgs e)
         {
             
@@ -174,9 +171,11 @@ namespace TestApp1
         private void newFormToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SkinForm form = new SkinForm { RightToLeft = RightToLeft, RightToLeftLayout = RightToLeftLayout, Text = "Form1", BorderWidth = BorderWidth, CaptionHieght = CaptionHieght, BorderRadius = BorderRadius, NcOpacity = NcOpacity, StartPosition = FormStartPosition.CenterParent, AllowNcTransparency = AllowNcTransparency, Size = new Size(1024, 768), BackgroundImage = BackgroundImage, BackgroundImageLayout = BackgroundImageLayout , ActiveCaptionColor = ActiveCaptionColor, InActiveCaptionColor = InActiveCaptionColor };
+
             WindowState = FormWindowState.Minimized;
             form.Closing += delegate { WindowState = FormWindowState.Maximized; };
             form.Show();
+            form.Activate();
         }
 
         private void newChildFormToolStripMenuItem_Click(object sender, EventArgs e)
